@@ -1,0 +1,8 @@
+.autotest
+History.txt
+Manifest.txt
+README.txt
+Rakefile
+bin/el_finder
+lib/el_finder.rb
+test/test_el_finder.rb
