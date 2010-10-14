@@ -5,7 +5,8 @@ require "fileutils"
 class TestElFinderPathname < Test::Unit::TestCase
 
   def setup
-    @vroot = File.join(File.dirname(__FILE__), 'tmp')
+    @vroot = "/tmp/elfinder"
+    ElFinder::Pathname.root = @vroot
     ::FileUtils.mkdir(@vroot)
   end
 
@@ -13,30 +14,43 @@ class TestElFinderPathname < Test::Unit::TestCase
     ::FileUtils.rm_rf(@vroot)
   end
 
+  def test_root_path
+    assert_equal @vroot, ElFinder::Pathname.root.to_s
+  end
+
+  def test_total_failure_if_root_is_nil
+    ElFinder::Pathname.root = nil
+    assert_nil ElFinder::Pathname.root
+  end
+
+  def test_cleanpath
+    assert_equal File.join(@vroot, 'foo/bar'), ElFinder::Pathname.new(File.join('foo', '..', 'foo', 'bar')).to_s
+  end
+
   def test_duplication_without_extension
-    assert_equal 'README copy 1', ElFinder::Pathname.new(File.join(@vroot, 'README')).duplicate.basename.to_s
+    assert_equal File.join(@vroot, 'README copy 1'), ElFinder::Pathname.new('README').duplicate.to_s
   end
 
   def test_2nd_duplication_without_extension
     ::FileUtils.touch(File.join(@vroot, 'README copy 1'))
-    assert_equal 'README copy 2', ElFinder::Pathname.new(File.join(@vroot, 'README')).duplicate.basename.to_s
+    assert_equal File.join(@vroot, 'README copy 2'), ElFinder::Pathname.new('README').duplicate.to_s
   end
 
   def test_duplication_with_extension
-    assert_equal 'README copy 1.txt', ElFinder::Pathname.new(File.join(@vroot, 'README.txt')).duplicate.basename.to_s
+    assert_equal File.join(@vroot, 'README copy 1.txt'), ElFinder::Pathname.new('README.txt').duplicate.to_s
   end
 
   def test_2nd_duplication_with_extension
     ::FileUtils.touch(File.join(@vroot, 'README copy 1.txt'))
-    assert_equal 'README copy 2.txt', ElFinder::Pathname.new(File.join(@vroot, 'README.txt')).duplicate.basename.to_s
+    assert_equal File.join(@vroot, 'README copy 2.txt'), ElFinder::Pathname.new('README.txt').duplicate.to_s
   end
 
   def test_duplication_of_duplication_lookalike
-    assert_equal 'README copy A copy 1.txt', ElFinder::Pathname.new(File.join(@vroot, 'README copy A.txt')).duplicate.basename.to_s
+    assert_equal File.join(@vroot, 'README copy A copy 1.txt'), ElFinder::Pathname.new('README copy A.txt').duplicate.to_s
   end
 
   def test_duplication_of_duplication_lookalike
-    assert_equal 'README copy copy 1.txt', ElFinder::Pathname.new(File.join(@vroot, 'README copy.txt')).duplicate.basename.to_s
+    assert_equal File.join(@vroot, 'README copy copy 1.txt'), ElFinder::Pathname.new('README copy.txt').duplicate.to_s
   end
 
 end

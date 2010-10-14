@@ -3,6 +3,10 @@ require "el_finder"
 
 class TestElFinderMimeType < Test::Unit::TestCase
 
+  def setup
+    ElFinder::Pathname.root = "." # cwd ensures the root is valid
+  end
+
   def test_that_method_exists
     assert_respond_to ElFinder::MimeType, :for_pathname
   end
