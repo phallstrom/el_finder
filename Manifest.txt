@@ -4,4 +4,9 @@ Manifest.txt
 README.txt
 Rakefile
 lib/el_finder.rb
+lib/el_finder/commands.rb
+lib/el_finder/mime_type.rb
+lib/el_finder/pathname.rb
 test/test_el_finder.rb
+test/test_el_finder_mime_type.rb
+test/test_el_finder_pathname.rb
