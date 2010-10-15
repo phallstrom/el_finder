@@ -55,16 +55,6 @@ class TestElFinder < Test::Unit::TestCase
     assert_match /invalid command/i, r[:error]
   end
 
-  def test_should_return_debug_information_when_configured_to
-    elfinder = ElFinder::Connector.new({:root => '/tmp/elfinder', :url => '/elfinder', :debug => false})
-    h, r = elfinder.run({:cmd => 'INVALID'})
-    assert_nil r[:debug]
-
-    elfinder = ElFinder::Connector.new({:root => '/tmp/elfinder', :url => '/elfinder', :debug => true})
-    h, r = elfinder.run({:cmd => 'INVALID'})
-    assert_not_nil r[:debug]
-  end
-
   def test_to_hash_method
     assert_equal 'foo/bar', @elfinder.to_hash(ElFinder::Pathname.new_with_root(@vroot, 'foo/bar'))
     assert_equal '/', @elfinder.to_hash(ElFinder::Pathname.new_with_root(@vroot))

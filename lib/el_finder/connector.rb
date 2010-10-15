@@ -5,6 +5,8 @@ module ElFinder
 
     DEFAULT_OPTIONS = {
       :mime_handler => ElFinder::MimeType,
+      :image_size_handler => ElFinder::ImageSize,
+      :image_resize_handler => ElFinder::ImageResize,
       :disabled_commands => [],
       :show_dot_files => true,
       :upload_max_size => '50M',
@@ -22,6 +24,12 @@ module ElFinder
 
       @mime_handler = @options.delete(:mime_handler)
       raise(RuntimeError, "Mime Handler is invalid") unless @mime_handler.respond_to?(:for)
+
+      @image_size_handler = @options.delete(:image_size_handler)
+      raise(RuntimeError, "Image Size Handler is invalid") unless @image_size_handler.nil? || @image_size_handler.respond_to?(:for)
+
+      @image_resize_handler = @options.delete(:image_resize_handler)
+      raise(RuntimeError, "Image Resize Handler is invalid") unless @image_resize_handler.nil? || @image_resize_handler.respond_to?(:resize)
 
       @root = ElFinder::Pathname.new(options[:root])
 
@@ -56,7 +64,7 @@ module ElFinder
 
     #
     def from_hash(hash)
-      if hash == '/' || hash.blank?
+      if hash == '/' || hash.empty?
         pathname = @root.dup
       else
         pathname = ElFinder::Pathname.new_with_root(@root, hash)
@@ -193,7 +201,7 @@ module ElFinder
       else
         FileUtils.copy(@target, duplicate)
       end
-      @response[:select] = [duplicate]
+      @response[:select] = [to_hash(duplicate)]
       _open(@current)
     end # of duplicate
 
@@ -225,9 +233,17 @@ module ElFinder
 
     #
     def _resize
-      command_not_implemented
-      # system("mogrify -resize '#{@params[:width].to_i}x#{@params[:height].to_i}' '#{@target.to_s}'")
-      # _open(@current).merge(:select => [@target])
+      if @image_resize_handler.nil?
+        command_not_implemented
+      else
+        if @target.file?
+          @image_resize_handler.resize(@target, :width => @params[:width].to_i, :height => @params[:height].to_i)
+          @response[:select] = [to_hash(@target)]
+          _open(@current)
+        else
+          @response[:error] = "Unable to resize file. It does not exist"
+        end
+      end
     end # of resize
     
     ################################################################################
@@ -271,13 +287,19 @@ module ElFinder
           :parent => 'FIXME'
         )
       elsif pathname.file?
-        # FIXME - resize, dim, url
-        # identify -format '%wx%h' '#{pathname.to_s}'
         response.merge!(
           :size => pathname.size, 
           :mime => @mime_handler.for(pathname),
           :url => (@options[:url] + '/' + pathname.relative_path_from(@root))
         )
+
+        if response[:mime] =~ /image/ && !@image_size_handler.nil? && !@image_resize_handler.nil?
+          response.merge!(
+            :resize => true,
+            :dim => @image_size_handler.for(pathname)
+          )
+        end
+
       end
 
       return response
