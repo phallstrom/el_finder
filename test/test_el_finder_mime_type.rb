@@ -3,28 +3,28 @@ require "el_finder"
 
 class TestElFinderMimeType < Test::Unit::TestCase
 
-  def setup
-    ElFinder::Pathname.root = "." # cwd ensures the root is valid
-  end
-
   def test_that_method_exists
-    assert_respond_to ElFinder::MimeType, :for_pathname
+    assert_respond_to ElFinder::MimeType, :for
   end
 
   def test_known_mime_types
-    assert_equal 'image/jpeg', ElFinder::MimeType.for_pathname('image.jpg')
+    assert_equal 'image/jpeg', ElFinder::MimeType.for('image.jpg')
   end
 
   def test_unknown_mime_types
-    assert_equal 'application/octet-stream', ElFinder::MimeType.for_pathname('image.foo')
+    assert_equal 'unknown/unknown', ElFinder::MimeType.for('image.foo')
   end
 
   def test_uppercase_extensions
-    assert_equal 'image/jpeg', ElFinder::MimeType.for_pathname('image.JPG')
+    assert_equal 'image/jpeg', ElFinder::MimeType.for('image.JPG')
   end
 
   def test_missing_extension
-    assert_equal 'application/octet-stream', ElFinder::MimeType.for_pathname('README')
+    assert_equal 'unknown/unknown', ElFinder::MimeType.for('README')
+  end
+
+  def test_passing_pathname
+    assert_equal 'text/plain', ElFinder::MimeType.for(ElFinder::Pathname.new('README.txt'))
   end
 
 end

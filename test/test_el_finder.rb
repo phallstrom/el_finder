@@ -3,15 +3,19 @@ require "el_finder"
 
 class TestElFinder < Test::Unit::TestCase
 
+  def test_true
+    true
+  end
+
   def setup
-    @test_root = '/tmp/elfinder'
-    FileUtils.mkdir_p(@test_root)
-    FileUtils.cp_r "#{File.dirname(__FILE__)}/files/.",  @test_root
-    @elfinder = ElFinder::Connector.new({:root => @test_root, :url => '/elfinder'})
+    @vroot = '/tmp/elfinder'
+    FileUtils.mkdir_p(@vroot)
+    FileUtils.cp_r "#{File.dirname(__FILE__)}/files/.",  @vroot
+    @elfinder = ElFinder::Connector.new({:root => @vroot, :url => '/elfinder'})
   end
 
   def teardown
-    FileUtils.rm_rf(@test_root)
+    FileUtils.rm_rf(@vroot)
   end
 
   def test_should_fail_initialization_if_required_options_not_passed
@@ -44,6 +48,7 @@ class TestElFinder < Test::Unit::TestCase
     assert_instance_of Hash, r
   end
 
+
   def test_should_return_invalid_request_if_command_is_invalid
     h, r = @elfinder.run({:cmd => 'INVALID'})
     assert_not_nil r[:error]
@@ -59,5 +64,16 @@ class TestElFinder < Test::Unit::TestCase
     h, r = elfinder.run({:cmd => 'INVALID'})
     assert_not_nil r[:debug]
   end
+
+  def test_to_hash_method
+    assert_equal 'foo/bar', @elfinder.to_hash(ElFinder::Pathname.new_with_root(@vroot, 'foo/bar'))
+    assert_equal '/', @elfinder.to_hash(ElFinder::Pathname.new_with_root(@vroot))
+  end
+
+  def test_from_hash_method
+    assert_equal File.join(@vroot, 'foo/bar'), @elfinder.from_hash('foo/bar').to_s
+    assert_equal @vroot, @elfinder.from_hash('').to_s
+  end
+
 
 end

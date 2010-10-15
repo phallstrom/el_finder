@@ -5,28 +5,19 @@ module ElFinder
   class Pathname < ::Pathname
 
     #
-    def self.root=(pathname)
-      pathname = superclass.new(pathname) if pathname.is_a?(String)
-      @root = pathname
-      @root = @root.cleanpath if @root.respond_to?(:cleanpath)
-    end # of self.root=
+    def +(other)
+      self.class.new(super(other).to_s)
+    end
 
     #
-    def self.root
-      @root
-    end # of self.root
+    def join(*args)
+      self.class.new(super(*args).to_s)
+    end
 
     #
-    def initialize(path)
-      raise "ElFinder::Pathname requires a valid root" unless self.class.root.respond_to?(:directory?) && self.class.root.directory?
-
-      path = self.class.superclass.new(path).cleanpath
-      if path.absolute?
-        super(self.class.root + path.to_s[1..-1])
-      else
-        super(self.class.root + path)
-      end
-    end # of initialize
+    def self.new_with_root(root, path = '')
+      new(superclass.new(File.join(root, path)).cleanpath.to_s)
+    end # of self.new_with_root
 
     #
     def duplicate
@@ -34,7 +25,7 @@ module ElFinder
       _extname = extname
       _basename = basename(_extname)
       copy = 0
-      if _basename =~ /^(.*) copy ?(\d+)?$/
+      if _basename.to_s =~ /^(.*) copy (\d+)$/
         _basename = $1
         copy = $2.to_i
       end
@@ -47,25 +38,9 @@ module ElFinder
     end # of duplicate
 
     #
-    def relative_to_root
-      self.to_s.sub(%r!^#{self.class.root}/?!, '')
-    end # of relative_to_root
-
-    #
-    def hash
-      relative_to_root.to_s
-    end # of hash
-
-    #
-    def self.new_from_hash(path)
-      new(path)
-    end # of self.new_from_hash
-
-    #
-    def is_root?
-      relative_to_root.empty?
-    end # of is_root?
-
+    def relative_to(pathname)
+      self == pathname ? '' : relative_path_from(pathname).to_s
+    end # of relative_to
 
   end # of class Pathname
 

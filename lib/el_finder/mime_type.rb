@@ -68,10 +68,10 @@ module ElFinder
       'mkv'   => 'video/x-matroska'
     }
 		
-    def self.for_pathname(pathname)
-      pathname = ElFinder::Pathname.new(pathname) if pathname.is_a?(String)
-      TYPES[pathname.extname.downcase[1..-1]] || 'application/octet-stream'
-    end # of for_pathname
+    def self.for(pathname)
+      pathname = ::Pathname.new(pathname) if pathname.is_a?(String)
+      TYPES[pathname.extname.downcase[1..-1]] || 'unknown/unknown'
+    end # of for
 
   end # of class MimeType
 
