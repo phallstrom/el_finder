@@ -4,7 +4,14 @@ require "el_finder"
 class TestElFinder < Test::Unit::TestCase
 
   def setup
-    @elfinder = ElFinder::Connector.new({:root => '/tmp/elfinder', :url => '/elfinder'})
+    @test_root = '/tmp/elfinder'
+    FileUtils.mkdir_p(@test_root)
+    FileUtils.cp_r "#{File.dirname(__FILE__)}/files/.",  @test_root
+    @elfinder = ElFinder::Connector.new({:root => @test_root, :url => '/elfinder'})
+  end
+
+  def teardown
+    FileUtils.rm_rf(@test_root)
   end
 
   def test_should_fail_initialization_if_required_options_not_passed

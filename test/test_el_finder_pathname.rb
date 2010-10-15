@@ -53,4 +53,25 @@ class TestElFinderPathname < Test::Unit::TestCase
     assert_equal File.join(@vroot, 'README copy copy 1.txt'), ElFinder::Pathname.new('README copy.txt').duplicate.to_s
   end
 
+  def test_relative_to_root_method
+    assert_equal 'foo/bar/moo.txt', ElFinder::Pathname.new('foo/bar/moo.txt').relative_to_root
+    assert_equal 'foo.txt', ElFinder::Pathname.new('foo.txt').relative_to_root
+    assert_equal '', ElFinder::Pathname.new('').relative_to_root
+  end
+
+  def test_hash_method
+    assert_equal 'foo/bar.txt', ElFinder::Pathname.new('foo/bar.txt').hash
+  end
+
+  def test_new_from_hash_method
+    assert_equal File.join(@vroot, 'foo/bar.txt'), ElFinder::Pathname.new_from_hash('foo/bar.txt').to_s
+  end
+
+  def test_is_root_method
+    assert_equal true, ElFinder::Pathname.new('').is_root?
+    assert_equal false, ElFinder::Pathname.new('foo.txt').is_root?
+    assert_equal false, ElFinder::Pathname.new('foo/bar.txt').is_root?
+  end
+
+
 end
