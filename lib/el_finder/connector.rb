@@ -1,3 +1,5 @@
+require 'base64'
+
 module ElFinder
   class Connector
     
@@ -59,16 +61,12 @@ module ElFinder
 
     #
     def to_hash(pathname)
-      pathname == @root ? '/' : pathname.relative_to(@root).to_s
+      Base64.encode64(pathname == @root ? '/' : pathname.relative_to(@root).to_s).chomp
     end # of to_hash
 
     #
     def from_hash(hash)
-      if hash == '/' || hash.empty?
-        pathname = @root.dup
-      else
-        pathname = ElFinder::Pathname.new_with_root(@root, hash)
-      end
+      pathname = ElFinder::Pathname.new_with_root(@root, Base64.decode64(hash))
     end # of from_hash
 
     ################################################################################
