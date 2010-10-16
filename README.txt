@@ -9,7 +9,8 @@ open-source file manager for web, written in JavaScript using jQuery UI.
 
 == FEATURES/PROBLEMS:
 
-* FIX (list of features or problems)
+* Does not yet support archive/extraction.
+* Does not yet support thumbnail generation.
 
 == REQUIREMENTS:
 
