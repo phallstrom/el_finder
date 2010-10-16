@@ -1,3 +1,7 @@
+== el_finder
+
+* http://elrte.org/redmine/projects/elfinder
+
 == Description:
 
 Ruby library to provide server side functionality for elFinder.  elFinder is an
@@ -28,7 +32,6 @@ and resizing of an image.
 1. +bundle install+
 1. Switch to using jQuery instead of Prototype
 1. Add the following action to a controller of your choosing.
-
     skip_before_filter :verify_authenticity_token, :only => ['elfinder']
     def elfinder
       h, r = ElFinder::Connector.new(
@@ -36,13 +39,10 @@ and resizing of an image.
         :url => '/system/elfinder'
       ).run(params)
       headers.merge!(h)
-      if r.empty?
-        render :nothing => true, :layout => false
-      else
-        render :text => r.to_json , :layout => false
-      end
-
+      render (r.empty? ? {:nothing => true} : {:text => r.to_json}), :layout => false
     end
+1. Add the appropriate route to +config/routes.rb+ such as:
+    match 'elfinder' => 'home#elfinder'
 
 
 
