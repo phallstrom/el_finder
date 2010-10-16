@@ -12,6 +12,13 @@ open-source file manager for web, written in JavaScript using jQuery UI.
 * Does not yet support archive/extraction.
 * Does not yet support thumbnail generation.
 
+== Todo:
+
+* Add support for archive/extraction.
+* Add support for thumbnail generation.
+* Document library.
+* Document how to implement custom image size/resize methods.
+
 == Requirements:
 
 The gem, by default, relies upon the 'imagesize' ruby gem and ImageMagick's 'mogrify' command.
