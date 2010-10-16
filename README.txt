@@ -63,8 +63,7 @@ on where you installed the various js/css files.
     <% end %>
     <div id='elfinder'></div>
 
-* That's it.  I think.  If not, check out the example rails application
-at http://github.com/phallstrom/el_finder-rails-example.
+* That's it.  I think.  If not, check out the example rails application at http://github.com/phallstrom/el_finder-rails-example.
 
 == License:
 
