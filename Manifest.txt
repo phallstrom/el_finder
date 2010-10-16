@@ -1,7 +1,7 @@
 .autotest
 History.txt
 Manifest.txt
-README.rdoc
+README.txt
 Rakefile
 lib/el_finder.rb
 lib/el_finder/connector.rb

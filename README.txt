@@ -26,10 +26,10 @@ and resizing of an image.
 
 === Rails 3
 
-1. Add _gem 'el_finder'_ to +Gemfile+
-1. +bundle install+
-1. Switch to using jQuery instead of Prototype
-1. Add the following action to a controller of your choosing.
+* Add "gem 'el_finder'" to Gemfile
+* % bundle install
+* Switch to using jQuery instead of Prototype
+* Add the following action to a controller of your choosing.
 
     skip_before_filter :verify_authenticity_token, :only => ['elfinder']
     def elfinder
@@ -41,17 +41,17 @@ and resizing of an image.
       render (r.empty? ? {:nothing => true} : {:text => r.to_json}), :layout => false
     end
 
-1. Add the appropriate route to +config/routes.rb+ such as:
+* Add the appropriate route to config/routes.rb such as:
 
     match 'elfinder' => 'home#elfinder'
 
-1. Add the following to your layout. The paths may be different depending 
+* Add the following to your layout. The paths may be different depending 
 on where you installed the various js/css files.
 
     <%= stylesheet_link_tag 'jquery-ui/base/jquery.ui.all', 'elfinder' %>
     <%= javascript_include_tag :defaults, 'elfinder/elfinder.min' %>
 
-1. Add the following to the view that will display elFinder:
+* Add the following to the view that will display elFinder:
 
     <%= javascript_tag do %>
       $().ready(function() { 
@@ -63,7 +63,7 @@ on where you installed the various js/css files.
     <% end %>
     <div id='elfinder'></div>
 
-1. That's it.  I think.  If not, check out the example rails application
+* That's it.  I think.  If not, check out the example rails application
 at http://github.com/phallstrom/el_finder-rails-example.
 
 == License:
