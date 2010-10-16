@@ -9,6 +9,7 @@ module ElFinder
       :mime_handler => ElFinder::MimeType,
       :image_size_handler => ElFinder::ImageSize,
       :image_resize_handler => ElFinder::ImageResize,
+      :original_file_name_method => lambda {|file| file.original_file_name},
       :disabled_commands => [],
       :show_dot_files => true,
       :upload_max_size => '50M',
@@ -61,7 +62,7 @@ module ElFinder
 
     #
     def to_hash(pathname)
-      Base64.encode64(pathname == @root ? '/' : pathname.relative_to(@root).to_s).chomp
+      Base64.encode64(pathname == @root ? '/' : pathname.relative_path_from(@root).to_s).chomp
     end # of to_hash
 
     #
@@ -115,7 +116,7 @@ module ElFinder
     #
     def _mkdir
       dir = @current + @params[:name]
-      if dir.mkdir
+      if !dir.exist? && dir.mkdir
         @params[:tree] = true
         @response[:select] = [to_hash(dir)]
         _open(@current)
@@ -127,7 +128,7 @@ module ElFinder
     #
     def _mkfile
       file = @current + @params[:name]
-      if FileUtils.touch(file)
+      if !file.exist? && FileUtils.touch(file)
         @response[:select] = [to_hash(file)]
         _open(@current)
       else
@@ -153,7 +154,7 @@ module ElFinder
     def _upload
       select = []
       @params[:upload].to_a.each do |file|
-        dst = @current + file.original_filename
+        dst = @current + @options[:original_file_name_method].call(file)
         File.rename(file.path, dst)
         select << to_hash(dst)
       end
@@ -170,10 +171,20 @@ module ElFinder
     def _paste
       @targets.to_a.each do |src|
         dst = from_hash(@params[:dst]) + src.basename
-        if @params[:cut].to_i > 0
-          File.rename(src, dst)
+        if dst.exist?
+          @response[:error] = 'Some files were unable to be copied'
+          @response[:errorData] ||= {}
+          @response[:errorData][src.basename] = "already exists in '#{dst.dirname.relative_path_from(@root)}'"
         else
-          FileUtils.copy(src, dst)
+          if @params[:cut].to_i > 0
+            File.rename(src, dst)
+          else
+            if src.directory?
+              FileUtils.cp_r(src, dst)
+            else
+              FileUtils.copy(src, dst)
+            end
+          end
         end
       end
       @params[:tree] = true
@@ -210,7 +221,7 @@ module ElFinder
 
     #
     def _edit
-      @target.open('w') { |f| f.puts @params[:content] }
+      @target.open('w') { |f| f.write @params[:content] }
       @response[:file] = cdc_for(@target)
     end # of edit
 
@@ -253,7 +264,7 @@ module ElFinder
         :name => pathname.basename.to_s,
         :hash => to_hash(pathname),
         :mime => 'directory',
-        :rel => (@options[:home] + '/' + pathname.relative_to(@root)),
+        :rel => (@options[:home] + '/' + pathname.relative_path_from(@root)),
         :size => 0,
         :date => pathname.mtime.to_s,
         :read => pathname.readable?,

@@ -14,6 +14,8 @@ class TestElFinderPathname < Test::Unit::TestCase
     FileUtils.rm_rf(@vroot)
   end
 
+  ################################################################################
+
   def test_paths_are_always_clean
     assert_equal File.join(@vroot, 'foo/bar'), ElFinder::Pathname.new_with_root(@vroot, File.join('foo', '..', 'foo', 'bar')).to_s
     assert_equal @vroot, ElFinder::Pathname.new_with_root(@vroot, '').to_s
@@ -55,11 +57,15 @@ class TestElFinderPathname < Test::Unit::TestCase
     assert_equal true, File.exist?(File.join(@vroot, 'README copy 1.txt'))
   end
 
+  ################################################################################
+
   def test_relative_to_method
     assert_equal "", ElFinder::Pathname.new_with_root(@vroot).relative_to(::Pathname.new(@vroot)).to_s
     assert_equal "foo.txt", ElFinder::Pathname.new_with_root(@vroot, 'foo.txt').relative_to(::Pathname.new(@vroot)).to_s
     assert_equal "foo/bar.txt", ElFinder::Pathname.new_with_root(@vroot, 'foo/bar.txt').relative_to(::Pathname.new(@vroot)).to_s
   end
+
+  ################################################################################
 
   def test_class_type
     assert_kind_of ElFinder::Pathname, ElFinder::Pathname.new_with_root(@vroot, 'foo')

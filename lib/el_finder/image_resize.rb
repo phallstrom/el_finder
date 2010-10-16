@@ -6,7 +6,7 @@ module ElFinder
 
     def self.resize(pathname, options = {})
       return nil unless File.exist?(pathname)
-      system( ::Shellwords.join(['mogrify', '-resize', "#{options[:width]}x#{options[:height]}", pathname.to_s]) ) 
+      system( ::Shellwords.join(['mogrify', '-resize', "#{options[:width]}x#{options[:height]}!", pathname.to_s]) ) 
     end # of self.resize
 
   end # of class ImageSize
