@@ -10,7 +10,7 @@ class TestElFinder < Test::Unit::TestCase
     @elfinder = ElFinder::Connector.new({
       :root => @vroot, 
       :url => '/elfinder', 
-      :original_file_name_method => lambda {|file| File.basename(file.path)}
+      :original_filename_method => lambda {|file| File.basename(file.path)}
     })
   end
 
@@ -56,7 +56,7 @@ class TestElFinder < Test::Unit::TestCase
   def test_should_return_invalid_request_if_command_is_invalid
     h, r = @elfinder.run({:cmd => 'INVALID'})
     assert_not_nil r[:error]
-    assert_match /invalid command/i, r[:error]
+    assert_match(/invalid command/i, r[:error])
   end
   
   ################################################################################
@@ -102,10 +102,10 @@ class TestElFinder < Test::Unit::TestCase
     assert_not_nil r1[:select]
 
     h1, r1 = @elfinder.run(:cmd => 'mkdir', :current => r[:cwd][:hash], :name => 'dir1')
-    assert_match /unable/i, r1[:error]
+    assert_match(/unable/i, r1[:error])
 
     h1, r1 = @elfinder.run(:cmd => 'mkdir', :current => r[:cwd][:hash], :name => 'foo')
-    assert_match /unable/i, r1[:error]
+    assert_match(/unable/i, r1[:error])
   end
 
   def test_mkfile
@@ -115,10 +115,10 @@ class TestElFinder < Test::Unit::TestCase
     assert_not_nil r1[:select]
 
     h1, r1 = @elfinder.run(:cmd => 'mkfile', :current => r[:cwd][:hash], :name => 'file1')
-    assert_match /unable/i, r1[:error]
+    assert_match(/unable/i, r1[:error])
 
     h1, r1 = @elfinder.run(:cmd => 'mkfile', :current => r[:cwd][:hash], :name => 'README.txt')
-    assert_match /unable/i, r1[:error]
+    assert_match(/unable/i, r1[:error])
   end
 
   def test_rename_ok
@@ -133,7 +133,7 @@ class TestElFinder < Test::Unit::TestCase
     h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
     target = r[:cdc].find{|e| e[:name] == 'README.txt'}
     h1, r1 = @elfinder.run(:cmd => 'rename', :target => target[:hash], :current => r[:cwd][:hash], :name => 'foo')
-    assert_match /unable.*already exists/i, r1[:error]
+    assert_match(/unable.*already exists/i, r1[:error])
     assert File.file?(File.join(@vroot, 'README.txt'))
     assert_nil r1[:select]
   end
@@ -195,7 +195,7 @@ class TestElFinder < Test::Unit::TestCase
 
     h, r = @elfinder.run(:cmd => 'paste', :targets => targets.map{|e| e[:hash]}, :dst => dst[:hash])
     assert_not_nil r[:tree]
-    assert_match /unable to be copied/i, r[:error]
+    assert_match(/unable to be copied/i, r[:error])
     assert_not_nil r[:errorData]
     assert_equal 1, r[:errorData].size
     assert File.exist?(File.join(@vroot, 'philip.txt'))
@@ -208,7 +208,7 @@ class TestElFinder < Test::Unit::TestCase
   def test_rm
     h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
     h, r = @elfinder.run(:cmd => 'rm', :current => r[:cwd][:hash], :targets => [])
-    assert_match /no files/i, r[:error]
+    assert_match(/no files/i, r[:error])
 
     h, r = @elfinder.run(:cmd => 'rm', :targets => r[:cdc].reject{|e| e[:mime] =~ /image/}.map{|e| e[:hash]})
     assert !File.exist?(File.join(@vroot, 'README.txt'))

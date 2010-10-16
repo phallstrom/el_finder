@@ -44,7 +44,7 @@ class TestElFinderPathname < Test::Unit::TestCase
     assert_equal File.join(@vroot, 'README copy A copy 1.txt'), ElFinder::Pathname.new_with_root(@vroot,'README copy A.txt').duplicate.to_s
   end
 
-  def test_duplication_of_duplication_lookalike
+  def test_duplication_of_duplication_lookalike2
     assert_equal File.join(@vroot, 'README copy copy 1.txt'), ElFinder::Pathname.new_with_root(@vroot,'README copy.txt').duplicate.to_s
   end
 

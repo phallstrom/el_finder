@@ -9,7 +9,7 @@ module ElFinder
       :mime_handler => ElFinder::MimeType,
       :image_size_handler => ElFinder::ImageSize,
       :image_resize_handler => ElFinder::ImageResize,
-      :original_file_name_method => lambda {|file| file.original_file_name},
+      :original_filename_method => lambda {|file| file.original_filename},
       :disabled_commands => [],
       :show_dot_files => true,
       :upload_max_size => '50M',
@@ -46,8 +46,8 @@ module ElFinder
 
       if VALID_COMMANDS.include?(@params[:cmd])
 
-        @current = from_hash(@params[:current]) if @params[:current]
-        @target = from_hash(@params[:target]) if @params[:target]
+        @current = @params[:current] ? from_hash(@params[:current]) : nil
+        @target = @params[:target] ? from_hash(@params[:target]) : nil
         if params[:targets]
           @targets = @params[:targets].map{|t| from_hash(t)}
         end
@@ -77,7 +77,9 @@ module ElFinder
     def _open(target = nil)
       target ||= @target
 
-      if target.file?
+      if target.nil?
+        _open(@root)
+      elsif target.file?
         command_not_implemented
       elsif target.directory?
         @response[:cwd] = cwd_for(target)
@@ -154,7 +156,7 @@ module ElFinder
     def _upload
       select = []
       @params[:upload].to_a.each do |file|
-        dst = @current + @options[:original_file_name_method].call(file)
+        dst = @current + @options[:original_filename_method].call(file)
         File.rename(file.path, dst)
         select << to_hash(dst)
       end
