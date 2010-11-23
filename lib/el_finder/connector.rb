@@ -139,6 +139,9 @@ module ElFinder
     end # of mkfile
 
     #
+    # FIXME - Need to consider overloading rename() to fall back to move() should the rename
+    #         cross a file system boundary.
+    #
     def _rename
       to = @current + @params[:name]
       if to.exist?
