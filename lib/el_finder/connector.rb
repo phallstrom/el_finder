@@ -157,7 +157,7 @@ module ElFinder
       select = []
       @params[:upload].to_a.each do |file|
         dst = @current + @options[:original_filename_method].call(file)
-        File.rename(file.path, dst)
+        FileUtils.mv(file.path, dst)
         select << to_hash(dst)
       end
       @response[:select] = select
@@ -266,7 +266,7 @@ module ElFinder
         :name => pathname.basename.to_s,
         :hash => to_hash(pathname),
         :mime => 'directory',
-        :rel => (@options[:home] + '/' + pathname.relative_path_from(@root)),
+        :rel => (@options[:home] + '/' + pathname.relative_path_from(@root).to_s),
         :size => 0,
         :date => pathname.mtime.to_s,
         :read => pathname.readable?,
@@ -301,7 +301,7 @@ module ElFinder
         response.merge!(
           :size => pathname.size, 
           :mime => @mime_handler.for(pathname),
-          :url => (@options[:url] + '/' + pathname.relative_path_from(@root))
+          :url => (@options[:url] + '/' + pathname.relative_path_from(@root).to_s)
         )
 
         if response[:mime] =~ /image/ && !@image_size_handler.nil? && !@image_resize_handler.nil?
