@@ -343,7 +343,7 @@ class TestElFinder < Test::Unit::TestCase
   def test_custom_permissions_in_subdirectories
     @elfinder.options = {
       :perms => {
-        r%foo/s.*% => {:read => false}
+        %r{foo/s.*} => {:read => false}
       }
     }
 
