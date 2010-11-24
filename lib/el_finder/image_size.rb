@@ -7,8 +7,8 @@ module ElFinder
 
     def self.for(pathname)
       return nil unless File.exist?(pathname)
-      s = new(File.open(pathname)).get_size.join('x').to_s
-      s = nil if s == 'x'
+      s = new(File.open(pathname)).size.to_s
+      s = nil if s.empty?
       return s
     end
 
