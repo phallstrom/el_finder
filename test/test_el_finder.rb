@@ -360,6 +360,21 @@ class TestElFinder < Test::Unit::TestCase
     end
   end
 
+  def test_actual_read_permissions
+    @elfinder.options = {
+      :perms => {
+        'README.txt' => {:read => false}
+      }
+    }
+
+    h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
+    file = r[:cdc].find{|e| e[:name] == 'README.txt'}
+    h, r = @elfinder.run(:cmd => 'read', :target => file[:hash])
+    
+    pp r
+
+  end
+
 end
 
 __END__
