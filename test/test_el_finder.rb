@@ -360,7 +360,7 @@ class TestElFinder < Test::Unit::TestCase
     end
   end
 
-  def test_actual_read_permissions
+  def test_actual_read_file_permissions
     @elfinder.options = {
       :perms => {
         'README.txt' => {:read => false}
@@ -371,7 +371,8 @@ class TestElFinder < Test::Unit::TestCase
     file = r[:cdc].find{|e| e[:name] == 'README.txt'}
     h, r = @elfinder.run(:cmd => 'read', :target => file[:hash])
     
-    pp r
+    assert_nil r[:content]
+    assert_match(/access denied/i, r[:error])
 
   end
 

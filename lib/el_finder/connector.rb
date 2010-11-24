@@ -222,7 +222,11 @@ module ElFinder
 
     # 
     def _read
-      @response[:content] = @target.read
+      if perms_for(@target)[:read] == true
+        @response[:content] = @target.read
+      else
+        @response[:error] = "Access denied"
+      end
     end # of read
 
     #
