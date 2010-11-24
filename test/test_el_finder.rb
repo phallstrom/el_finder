@@ -340,20 +340,25 @@ class TestElFinder < Test::Unit::TestCase
     end
   end
 
-=begin
-  def test_rm_permissions
-    @elfinder.options = {:perms => ['^foo/s.*' => {:rm => false}]}
+  def test_custom_permissions_in_subdirectories
+    @elfinder.options = {
+      :perms => {
+        r%foo/s.*% => {:read => false}
+      }
+    }
 
     h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
     h, r = @elfinder.run(:cmd => 'open', :target => r[:cdc].find{|e| e[:name] == 'foo'}[:hash])
 
-    h, r = @elfinder.run(:cmd => 'rm', :targets => r[:cdc].map{|e| e[:hash]})
-    assert !File.exist?(File.join(@vroot, 'philip.txt'))
-    assert File.exist?(File.join(@vroot, 'sam.txt'))
-    assert File.exist?(File.join(@vroot, 'sandy.txt'))
-    assert !File.exist?(File.join(@vroot, 'tom.txt'))
+    r[:cdc].each do |e|
+      case e[:name]
+      when 'sandy.txt', 'sam.txt'
+        assert_equal false, e[:read]
+      else 
+        assert_equal true, e[:read]
+      end
+    end
   end
-=end
 
 end
 
