@@ -271,9 +271,6 @@ class TestElFinder < Test::Unit::TestCase
   def test_default_permissions
     h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
 
-    pp r
-    exit
-
     assert_equal true, r[:cwd][:read]
     assert_equal true, r[:cwd][:write]
     assert_equal false, r[:cwd][:rm]
@@ -282,6 +279,64 @@ class TestElFinder < Test::Unit::TestCase
       assert_equal true, e[:read]
       assert_equal true, e[:write]
       assert_equal true, e[:rm]
+    end
+  end
+
+  def test_custom_permissions
+    @elfinder.options = {
+      :perms => {
+        'foo' => {:rm => false},
+        /.*.png$/ => {:rm => false},
+        /^pjkh/ => {:read => false},
+        'README.txt' => {:write => false},
+      }
+    }
+
+    h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
+
+    r[:cdc].each do |e|
+      case e[:name]
+      when 'elfinder.png'
+        assert_equal true, e[:read]
+        assert_equal false, e[:write]
+        assert_equal false, e[:rm]
+      when 'foo'
+        assert_equal true, e[:read]
+        assert_equal true, e[:write]
+        assert_equal false, e[:rm]
+      when 'pjkh.png'
+        assert_equal false, e[:read]
+        assert_equal false, e[:write]
+        assert_equal false, e[:rm]
+      when 'README.txt'
+        assert_equal true, e[:read]
+        assert_equal false, e[:write]
+        assert_equal false, e[:rm]
+      end
+    end
+  end
+
+  def test_custom_permissions_multiple_matches_prefers_false
+    @elfinder.options = {
+      :perms => {
+        'pjkh.png' => {:read => false},
+        /pjkh/ => {:read => true},
+      }
+    }
+
+    h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
+
+    r[:cdc].each do |e|
+      case e[:name]
+      when 'pjkh.png'
+        assert_equal false, e[:read]
+        assert_equal true, e[:write]
+        assert_equal true, e[:rm]
+      else 
+        assert_equal true, e[:read]
+        assert_equal true, e[:write]
+        assert_equal true, e[:rm]
+      end
     end
   end
 

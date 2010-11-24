@@ -92,10 +92,8 @@ module ElFinder
           @response[:tree] = {
             :name => @options[:home],
             :hash => to_hash(@root),
-            :read => @root.readable?,              
-            :write => @root.writable?,            
-            :dirs => tree_for(@root)
-          }
+            :dirs => tree_for(@root),
+          }.merge(perms_for(@root))
         end
 
         if @params[:init]
@@ -348,19 +346,31 @@ module ElFinder
       response = {}
 
       unless skip.include?(:read)
-        response[:read] = pathname.readable? && @options[:default_perms][:read]
+        response[:read] = pathname.readable? && specific_perm_for(pathname, :read) && @options[:default_perms][:read] 
       end
 
       unless skip.include?(:write)
-        response[:write] = pathname.writable? && @options[:default_perms][:write]
+        response[:write] = pathname.writable? && specific_perm_for(pathname, :write) && @options[:default_perms][:write]
       end
 
       unless skip.include?(:rm)
-        response[:rm] = pathname != @root && pathname.writable? && @options[:default_perms][:rm]
+        response[:rm] = pathname != @root && pathname.writable? && specific_perm_for(pathname, :rm) && @options[:default_perms][:rm]
+      end
+
+      # If you can't write to a file you shouldn't be able to remove it.  And
+      # vice versa.  If you can do one of them you can effectively do either
+      # (either remove it, or wipe it's contents)
+      if pathname.file?
+        response[:write] = response[:rm] = response[:write] && response[:rm]
       end
 
       response
     end # of perms_for
+
+    #
+    def specific_perm_for(pathname, perm)
+      @options[:perms].select{ |k,v| pathname.relative_path_from(@root).to_s.send((k.is_a?(String) ? :== : :match), k) }.none?{|e| e.last[perm] == false}
+    end # of specific_perm_for
     
     #
     def invalid_request
