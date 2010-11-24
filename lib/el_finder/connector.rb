@@ -24,15 +24,9 @@ module ElFinder
 
       raise(RuntimeError, "Missing required :url option") unless @options.key?(:url) 
       raise(RuntimeError, "Missing required :root option") unless @options.key?(:root) 
-
-      @mime_handler = @options.delete(:mime_handler)
-      raise(RuntimeError, "Mime Handler is invalid") unless @mime_handler.respond_to?(:for)
-
-      @image_size_handler = @options.delete(:image_size_handler)
-      raise(RuntimeError, "Image Size Handler is invalid") unless @image_size_handler.nil? || @image_size_handler.respond_to?(:for)
-
-      @image_resize_handler = @options.delete(:image_resize_handler)
-      raise(RuntimeError, "Image Resize Handler is invalid") unless @image_resize_handler.nil? || @image_resize_handler.respond_to?(:resize)
+      raise(RuntimeError, "Mime Handler is invalid") unless mime_handler.respond_to?(:for)
+      raise(RuntimeError, "Image Size Handler is invalid") unless image_size_handler.nil? || image_size_handler.respond_to?(:for)
+      raise(RuntimeError, "Image Resize Handler is invalid") unless image_resize_handler.nil? || image_resize_handler.respond_to?(:resize)
 
       @root = ElFinder::Pathname.new(options[:root])
 
@@ -247,11 +241,11 @@ module ElFinder
 
     #
     def _resize
-      if @image_resize_handler.nil?
+      if image_resize_handler.nil?
         command_not_implemented
       else
         if @target.file?
-          @image_resize_handler.resize(@target, :width => @params[:width].to_i, :height => @params[:height].to_i)
+          image_resize_handler.resize(@target, :width => @params[:width].to_i, :height => @params[:height].to_i)
           @response[:select] = [to_hash(@target)]
           _open(@current)
         else
@@ -262,6 +256,21 @@ module ElFinder
     
     ################################################################################
     private
+
+    #
+    def mime_handler
+      @options[:mime_handler]
+    end
+
+    #
+    def image_size_handler
+      @options[:image_size_handler]
+    end
+
+    #
+    def image_resize_handler
+      @options[:image_resize_handler]
+    end
 
     # 
     def cwd_for(pathname)
@@ -303,14 +312,14 @@ module ElFinder
       elsif pathname.file?
         response.merge!(
           :size => pathname.size, 
-          :mime => @mime_handler.for(pathname),
+          :mime => mime_handler.for(pathname),
           :url => (@options[:url] + '/' + pathname.relative_path_from(@root).to_s)
         )
 
-        if response[:mime] =~ /image/ && !@image_size_handler.nil? && !@image_resize_handler.nil?
+        if response[:mime] =~ /image/ && !image_size_handler.nil? && !image_resize_handler.nil?
           response.merge!(
             :resize => true,
-            :dim => @image_size_handler.for(pathname)
+            :dim => image_size_handler.for(pathname)
           )
         end
 
