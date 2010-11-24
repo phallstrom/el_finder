@@ -1,13 +1,11 @@
 # -*- ruby -*-
 
-require 'rubygems'
-require 'hoe'
+require 'bundler'
+Bundler::GemHelper.install_tasks
 
-Hoe.spec 'el_finder' do
-  developer('Philip Hallstrom', 'philip@pjkh.com')
-  self.extra_deps = [
-    ["image_size",">=1.0.0"]
-  ]
+require 'rake/testtask'
+Rake::TestTask.new(:test) do |test|
+  test.libs << 'lib' << 'test'
+  test.pattern = 'test/**/test_*.rb'
+  test.verbose = true
 end
-
-# vim: syntax=ruby
