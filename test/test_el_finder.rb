@@ -1,5 +1,6 @@
-require "test/unit"
-require "el_finder"
+require 'test/unit'
+require 'el_finder'
+require 'pp'
 
 class TestElFinder < Test::Unit::TestCase
 
@@ -250,6 +251,39 @@ class TestElFinder < Test::Unit::TestCase
     assert File.exist?(File.join(@vroot, 'pjkh.png'))
     assert_equal '50x25', ElFinder::ImageSize.for(File.join(@vroot, 'pjkh.png')).to_s
   end
+
+  ################################################################################
+
+  def test_default_permissions
+    h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
+
+    assert_equal true, r[:cwd][:read]
+    assert_equal true, r[:cwd][:write]
+    assert_equal false, r[:cwd][:rm]
+
+    r[:cdc].each do |e|
+      assert_equal true, e[:read]
+      assert_equal true, e[:write]
+      assert_equal true, e[:rm]
+    end
+
+
+  end
+
+=begin
+  def test_rm_permissions
+    @elfinder.options = {:perms => ['^foo/s.*' => {:rm => false}]}
+
+    h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
+    h, r = @elfinder.run(:cmd => 'open', :target => r[:cdc].find{|e| e[:name] == 'foo'}[:hash])
+
+    h, r = @elfinder.run(:cmd => 'rm', :targets => r[:cdc].map{|e| e[:hash]})
+    assert !File.exist?(File.join(@vroot, 'philip.txt'))
+    assert File.exist?(File.join(@vroot, 'sam.txt'))
+    assert File.exist?(File.join(@vroot, 'sandy.txt'))
+    assert !File.exist?(File.join(@vroot, 'tom.txt'))
+  end
+=end
 
 end
 

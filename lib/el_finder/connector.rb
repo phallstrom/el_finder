@@ -16,6 +16,8 @@ module ElFinder
       :archivers => [],
       :extractors => [],
       :home => 'Home',
+      :default_perms => {:read => true, :write => true, :rm => true},
+      :perms => [],
     }
 
     #
@@ -63,6 +65,13 @@ module ElFinder
     def from_hash(hash)
       pathname = ElFinder::Pathname.new_with_root(@root, Base64.decode64(hash))
     end # of from_hash
+
+    #
+    def options=(opts = {})
+      opts.each_pair do |k,v|
+        @options[k.to_sym] = v
+      end
+    end
 
     ################################################################################
     protected
@@ -281,10 +290,7 @@ module ElFinder
         :rel => (@options[:home] + '/' + pathname.relative_path_from(@root).to_s),
         :size => 0,
         :date => pathname.mtime.to_s,
-        :read => pathname.readable?,
-        :write => pathname.writable?,
-        :rm => (pathname != @root && pathname.writable?),
-      }
+      }.merge(perms_for(pathname))
     end
 
     # TODO - Implement link, linkTo, and parent
@@ -293,10 +299,8 @@ module ElFinder
         :name => pathname.basename.to_s,
         :hash => to_hash(pathname),
         :date => pathname.mtime.to_s,
-        :read => pathname.readable?,
-        :write => pathname.writable?,
-        :rm => pathname.writable?,
       }
+      response.merge! perms_for(pathname)
 
       if pathname.directory?
         response.merge!(
@@ -336,9 +340,29 @@ module ElFinder
          :read => child.readable?,
          :write => child.writable?,
          :dirs => tree_for(child),
-        }
+        }.merge(perms_for(child, :skip => :rm))
       }
     end # of tree_for
+
+    #
+    def perms_for(pathname, options = {})
+      skip = [options[:skip]].flatten
+      response = {}
+
+      unless skip.include?(:read)
+        response[:read] = pathname.readable? && @options[:default_perms][:read]
+      end
+
+      unless skip.include?(:write)
+        response[:write] = pathname.writable? && @options[:default_perms][:write]
+      end
+
+      unless skip.include?(:rm)
+        response[:rm] = pathname != @root && pathname.writable? && @options[:default_perms][:rm]
+      end
+
+      response
+    end # of perms_for
     
     #
     def invalid_request
