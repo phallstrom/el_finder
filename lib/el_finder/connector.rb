@@ -337,8 +337,6 @@ module ElFinder
       root.children.select{ |child| child.directory? }.sort_by{|e| e.basename.to_s.downcase}.map { |child|
         {:name => child.basename.to_s,
          :hash => to_hash(child),
-         :read => child.readable?,
-         :write => child.writable?,
          :dirs => tree_for(child),
         }.merge(perms_for(child, :skip => :rm))
       }

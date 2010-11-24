@@ -266,8 +266,23 @@ class TestElFinder < Test::Unit::TestCase
       assert_equal true, e[:write]
       assert_equal true, e[:rm]
     end
+  end
 
+  def test_default_permissions
+    h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
 
+    pp r
+    exit
+
+    assert_equal true, r[:cwd][:read]
+    assert_equal true, r[:cwd][:write]
+    assert_equal false, r[:cwd][:rm]
+
+    r[:cdc].each do |e|
+      assert_equal true, e[:read]
+      assert_equal true, e[:write]
+      assert_equal true, e[:rm]
+    end
   end
 
 =begin
