@@ -432,6 +432,38 @@ class TestElFinder < Test::Unit::TestCase
     assert_match(/access denied/i, r[:error])
   end
 
+  def test_paste_permissions_on_dst
+    @elfinder.options = {
+      :perms => {
+        'foo' => {:write => false}
+      }
+    }
+    h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
+    targets = r[:cdc].select{|e| e[:mime] != 'directory'}
+    dst = r[:cdc].find{|e| e[:name] == 'foo'}
+
+    h, r = @elfinder.run(:cmd => 'paste', :targets => targets.map{|e| e[:hash]}, :dst => dst[:hash])
+    assert_match(/access denied/i, r[:error])
+    assert !File.exist?(File.join(@vroot, 'foo', 'README.txt'))
+    assert !File.exist?(File.join(@vroot, 'foo', 'pjkh.png'))
+    assert !File.exist?(File.join(@vroot, 'foo', 'elfinder.png'))
+  end
+
+  def test_paste_permissions_on_target
+    @elfinder.options = {
+      :perms => {
+        'README.txt' => {:read => false}
+      }
+    }
+    h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
+    targets = r[:cdc].select{|e| e[:mime] != 'directory'}
+    dst = r[:cdc].find{|e| e[:name] == 'foo'}
+
+    h, r = @elfinder.run(:cmd => 'paste', :targets => targets.map{|e| e[:hash]}, :dst => dst[:hash])
+    assert !File.exist?(File.join(@vroot, 'foo', 'README.txt'))
+    assert File.exist?(File.join(@vroot, 'foo', 'pjkh.png'))
+    assert File.exist?(File.join(@vroot, 'foo', 'elfinder.png'))
+  end
 
   def test_read_file_permissions
     @elfinder.options = {

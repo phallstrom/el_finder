@@ -39,6 +39,7 @@ module ElFinder
     #
     def run(params = {})
       @params = params.dup
+      @response[:errorData] = {}
 
       if VALID_COMMANDS.include?(@params[:cmd])
 
@@ -48,10 +49,14 @@ module ElFinder
           @targets = @params[:targets].map{|t| from_hash(t)}
         end
 
+
+
         send("_#{@params[:cmd]}")
       else
         invalid_request
       end
+
+      @response.delete(:errorData) if @response[:errorData].empty?
 
       return @headers, @response
     end # of run
@@ -211,20 +216,30 @@ module ElFinder
 
     #
     def _paste
+      if perms_for(from_hash(@params[:dst]))[:write] == false
+        @response[:error] = 'Access Denied'
+        return
+      end
+
       @targets.to_a.each do |src|
-        dst = from_hash(@params[:dst]) + src.basename
-        if dst.exist?
-          @response[:error] = 'Some files were unable to be copied'
-          @response[:errorData] ||= {}
-          @response[:errorData][src.basename] = "already exists in '#{dst.dirname.relative_path_from(@root)}'"
+        if perms_for(src)[:read] == false
+          @response[:error] ||= 'Some files were not copied.'
+          @response[:errorData][src.basename] = "Access Denied"
+          return
         else
-          if @params[:cut].to_i > 0
-            File.rename(src, dst)
+          dst = from_hash(@params[:dst]) + src.basename
+          if dst.exist?
+            @response[:error] = 'Some files were unable to be copied'
+            @response[:errorData][src.basename] = "already exists in '#{dst.dirname.relative_path_from(@root)}'"
           else
-            if src.directory?
-              FileUtils.cp_r(src, dst)
+            if @params[:cut].to_i > 0
+              File.rename(src, dst)
             else
-              FileUtils.copy(src, dst)
+              if src.directory?
+                FileUtils.cp_r(src, dst)
+              else
+                FileUtils.copy(src, dst)
+              end
             end
           end
         end
