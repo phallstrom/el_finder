@@ -331,9 +331,13 @@ module ElFinder
         command_not_implemented
       else
         if @target.file?
-          image_resize_handler.resize(@target, :width => @params[:width].to_i, :height => @params[:height].to_i)
-          @response[:select] = [to_hash(@target)]
-          _open(@current)
+          if perms_for(@target)[:read] == true && perms_for(@target)[:write] == true
+            image_resize_handler.resize(@target, :width => @params[:width].to_i, :height => @params[:height].to_i)
+            @response[:select] = [to_hash(@target)]
+            _open(@current)
+          else
+            @response[:error] = 'Access Denied'
+          end
         else
           @response[:error] = "Unable to resize file. It does not exist"
         end

@@ -539,6 +539,32 @@ class TestElFinder < Test::Unit::TestCase
     assert_not_equal 'Hello', File.read(File.join(@vroot, 'README.txt'))
   end
 
+  def test_resize_permissions_read
+    @elfinder.options = {
+      :perms => {
+        'pjkh.png' => {:read => false}
+      }
+    }
+    h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
+    file = r[:cdc].find{|e| e[:name] == 'pjkh.png'}
+    h, r = @elfinder.run(:cmd => 'resize', :target => file[:hash], :current => r[:cwd][:hash], :width => '50', :height => '25')
+    assert File.exist?(File.join(@vroot, 'pjkh.png'))
+    assert_equal '100x100', ElFinder::ImageSize.for(File.join(@vroot, 'pjkh.png')).to_s
+  end
+
+  def test_resize_permissions_write
+    @elfinder.options = {
+      :perms => {
+        'pjkh.png' => {:write => false}
+      }
+    }
+    h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
+    file = r[:cdc].find{|e| e[:name] == 'pjkh.png'}
+    h, r = @elfinder.run(:cmd => 'resize', :target => file[:hash], :current => r[:cwd][:hash], :width => '50', :height => '25')
+    assert File.exist?(File.join(@vroot, 'pjkh.png'))
+    assert_equal '100x100', ElFinder::ImageSize.for(File.join(@vroot, 'pjkh.png')).to_s
+  end
+
 end
 
 __END__
