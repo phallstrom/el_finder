@@ -465,6 +465,26 @@ class TestElFinder < Test::Unit::TestCase
     assert File.exist?(File.join(@vroot, 'foo', 'elfinder.png'))
   end
 
+  def test_rm_permissions
+    assert_fail "Not yet tested"
+  end
+
+  def test_duplicate_permissions
+    @elfinder.options = {
+      :perms => {
+        'README.txt' => {:read => false}
+      }
+    }
+    h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
+    duplicate = r[:cdc].find{|e| e[:name] == 'README.txt'}
+    h, r = @elfinder.run(:cmd => 'duplicate', :target => duplicate[:hash])
+    assert !File.exist?(File.join(@vroot, 'README copy 1.txt'))
+    assert_match(/access denied/i, r[:error])
+
+    pp r
+  end
+
+
   def test_read_file_permissions
     @elfinder.options = {
       :perms => {

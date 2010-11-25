@@ -229,7 +229,7 @@ module ElFinder
         else
           dst = from_hash(@params[:dst]) + src.basename
           if dst.exist?
-            @response[:error] = 'Some files were unable to be copied'
+            @response[:error] ||= 'Some files were unable to be copied'
             @response[:errorData][src.basename] = "already exists in '#{dst.dirname.relative_path_from(@root)}'"
           else
             if @params[:cut].to_i > 0
@@ -249,11 +249,20 @@ module ElFinder
     end # of paste
 
     #
+    # FIXME - Need to handle case of writable directory, but unremovable file within it and other nested situations.
+    #
     def _rm
       if @targets.empty?
         @response[:error] = "No files were selected for removal"
       else
-        FileUtils.rm_rf(@targets)
+        @targets.to_a.each do |target|
+          if perms_for(target)[:rm] == false
+            @response[:error] ||= 'Some files/directories were unable to be removed'
+            @response[:errorData][src.basename] = "Access Denied"
+          else
+            FileUtils.rm_rf(target)
+          end
+        end
         @params[:tree] = true
         _open(@current)
       end
@@ -261,6 +270,13 @@ module ElFinder
 
     #
     def _duplicate
+      if perms_for(@target)[:read] == false || perms_for(@current)[:write] == false 
+        @response[:error] = 'Access Denied'
+        @response[:errorData][@target.basename] = 'Unable to read'
+        @response[:errorData][@current.basename] = 'Unable to write'
+        return
+      end
+
       duplicate = @target.duplicate
       if @target.directory?
         FileUtils.cp_r(@target, duplicate)
