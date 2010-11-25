@@ -144,6 +144,11 @@ module ElFinder
 
     #
     def _mkfile
+      if perms_for(@current)[:write] == false
+        @response[:error] = @options[:i18n][:access_denied]
+        return
+      end
+
       file = @current + @params[:name]
       if !file.exist? && FileUtils.touch(file)
         @response[:select] = [to_hash(file)]
