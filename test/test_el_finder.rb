@@ -360,7 +360,7 @@ class TestElFinder < Test::Unit::TestCase
     end
   end
 
-  def test_actual_read_file_permissions
+  def test_read_file_permissions
     @elfinder.options = {
       :perms => {
         'README.txt' => {:read => false}
@@ -368,12 +368,27 @@ class TestElFinder < Test::Unit::TestCase
     }
 
     h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
-    file = r[:cdc].find{|e| e[:name] == 'README.txt'}
-    h, r = @elfinder.run(:cmd => 'read', :target => file[:hash])
+    target = r[:cdc].find{|e| e[:name] == 'README.txt'}
+    h, r = @elfinder.run(:cmd => 'read', :target => target[:hash])
     
     assert_nil r[:content]
     assert_match(/access denied/i, r[:error])
+  end
 
+  def test_rename_permissions
+    @elfinder.options = {
+      :perms => {
+        'README.txt' => {:write => false}
+      }
+    }
+
+    h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
+    target = r[:cdc].find{|e| e[:name] == 'README.txt'}
+    h1, r = @elfinder.run(:cmd => 'rename', :target => target[:hash], :current => r[:cwd][:hash], :name => 'file1')
+    assert File.file?(File.join(@vroot, 'README.txt'))
+    assert !File.file?(File.join(@vroot, 'file1'))
+    assert_nil r[:select]
+    assert_match(/access denied/i, r[:error])
   end
 
 end

@@ -18,6 +18,7 @@ module ElFinder
       :home => 'Home',
       :default_perms => {:read => true, :write => true, :rm => true},
       :perms => [],
+      :i18n => {:access_denied => 'Access Denied'}
     }
 
     #
@@ -145,6 +146,19 @@ module ElFinder
     #
     def _rename
       to = @current + @params[:name]
+
+      perms_for_target = perms_for(@target)
+      if perms_for_target[:read] == false || perms_for_target[:write] == false || perms_for_target[:rm] == false
+        @response[:error] = @options[:i18n][:access_denied]
+        return
+      end
+
+      perms_for_to = perms_for(to)
+      if perms_for_to[:write] == false
+        @response[:error] = @options[:i18n][:access_denied]
+        return
+      end
+
       if to.exist?
         @response[:error] = "Unable to rename #{@target.ftype}. '#{to.basename}' already exists"
       elsif @target.rename(to)
@@ -225,7 +239,7 @@ module ElFinder
       if perms_for(@target)[:read] == true
         @response[:content] = @target.read
       else
-        @response[:error] = "Access denied"
+        @response[:error] = @options[:i18n][:access_denied]
       end
     end # of read
 
@@ -340,7 +354,7 @@ module ElFinder
         {:name => child.basename.to_s,
          :hash => to_hash(child),
          :dirs => tree_for(child),
-        }.merge(perms_for(child, :skip => :rm))
+        }.merge(perms_for(child))
       }
     end # of tree_for
 
@@ -349,17 +363,19 @@ module ElFinder
       skip = [options[:skip]].flatten
       response = {}
 
-      unless skip.include?(:read)
-        response[:read] = pathname.readable? && specific_perm_for(pathname, :read) && @options[:default_perms][:read] 
-      end
+      response[:read] = pathname.readable? if pathname.exist?
+      response[:read] &&= specific_perm_for(pathname, :read)
+      response[:read] &&= @options[:default_perms][:read] 
 
-      unless skip.include?(:write)
-        response[:write] = pathname.writable? && specific_perm_for(pathname, :write) && @options[:default_perms][:write]
-      end
+      response[:write] = pathname.writable? if pathname.exist?
+      response[:write] &&= specific_perm_for(pathname, :write) 
+      response[:write] &&= @options[:default_perms][:write]
 
-      unless skip.include?(:rm)
-        response[:rm] = pathname != @root && pathname.writable? && specific_perm_for(pathname, :rm) && @options[:default_perms][:rm]
-      end
+      response[:rm] = pathname != @root 
+      response[:rm] &&= response[:write]
+      response[:rm] &&= specific_perm_for(pathname, :rm)
+      response[:rm] &&= @options[:default_perms][:rm]
+      
 
       # If you can't write to a file you shouldn't be able to remove it.  And
       # vice versa.  If you can do one of them you can effectively do either
