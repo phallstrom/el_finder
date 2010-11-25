@@ -302,8 +302,12 @@ module ElFinder
 
     #
     def _edit
-      @target.open('w') { |f| f.write @params[:content] }
-      @response[:file] = cdc_for(@target)
+      if perms_for(@target)[:read] == true && perms_for(@target)[:write] == true
+        @target.open('w') { |f| f.write @params[:content] }
+        @response[:file] = cdc_for(@target)
+      else
+        @response[:error] = 'Access Denied'
+      end
     end # of edit
 
     #
