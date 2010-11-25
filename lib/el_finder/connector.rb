@@ -17,8 +17,7 @@ module ElFinder
       :extractors => [],
       :home => 'Home',
       :default_perms => {:read => true, :write => true, :rm => true},
-      :perms => [],
-      :i18n => {:access_denied => 'Access Denied'}
+      :perms => []
     }
 
     #
@@ -87,7 +86,7 @@ module ElFinder
       end
 
       if perms_for(target)[:read] == false
-        @response[:error] = @options[:i18n][:access_denied]
+        @response[:error] = 'Access Denied'
         return
       end
 
@@ -128,7 +127,7 @@ module ElFinder
     #
     def _mkdir
       if perms_for(@current)[:write] == false
-        @response[:error] = @options[:i18n][:access_denied]
+        @response[:error] = 'Access Denied'
         return
       end
 
@@ -145,7 +144,7 @@ module ElFinder
     #
     def _mkfile
       if perms_for(@current)[:write] == false
-        @response[:error] = @options[:i18n][:access_denied]
+        @response[:error] = 'Access Denied'
         return
       end
 
@@ -167,13 +166,13 @@ module ElFinder
 
       perms_for_target = perms_for(@target)
       if perms_for_target[:read] == false || perms_for_target[:write] == false || perms_for_target[:rm] == false
-        @response[:error] = @options[:i18n][:access_denied]
+        @response[:error] = 'Access Denied'
         return
       end
 
       perms_for_to = perms_for(to)
       if perms_for_to[:write] == false
-        @response[:error] = @options[:i18n][:access_denied]
+        @response[:error] = 'Access Denied'
         return
       end
 
@@ -190,6 +189,11 @@ module ElFinder
 
     #
     def _upload
+      if perms_for(@current)[:write] == false
+        @response[:error] = 'Access Denied'
+        return
+      end
+
       select = []
       @params[:upload].to_a.each do |file|
         dst = @current + @options[:original_filename_method].call(file)
@@ -257,7 +261,7 @@ module ElFinder
       if perms_for(@target)[:read] == true
         @response[:content] = @target.read
       else
-        @response[:error] = @options[:i18n][:access_denied]
+        @response[:error] = 'Access Denied'
       end
     end # of read
 

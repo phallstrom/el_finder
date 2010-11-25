@@ -268,18 +268,14 @@ class TestElFinder < Test::Unit::TestCase
     end
   end
 
-  def test_default_permissions
+  def test_custom_permissions_on_root
+    @elfinder.options = {
+      :perms => {
+        '.' => {:read => false},
+      }
+    }
     h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
-
-    assert_equal true, r[:cwd][:read]
-    assert_equal true, r[:cwd][:write]
-    assert_equal false, r[:cwd][:rm]
-
-    r[:cdc].each do |e|
-      assert_equal true, e[:read]
-      assert_equal true, e[:write]
-      assert_equal true, e[:rm]
-    end
+    assert_match(/access denied/i, r[:error])
   end
 
   def test_custom_permissions
@@ -405,21 +401,6 @@ class TestElFinder < Test::Unit::TestCase
     assert_match(/access denied/i, r[:error])
   end
 
-  def test_read_file_permissions
-    @elfinder.options = {
-      :perms => {
-        'README.txt' => {:read => false}
-      }
-    }
-
-    h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
-    target = r[:cdc].find{|e| e[:name] == 'README.txt'}
-    h, r = @elfinder.run(:cmd => 'read', :target => target[:hash])
-    
-    assert_nil r[:content]
-    assert_match(/access denied/i, r[:error])
-  end
-
   def test_rename_permissions
     @elfinder.options = {
       :perms => {
@@ -433,6 +414,37 @@ class TestElFinder < Test::Unit::TestCase
     assert File.file?(File.join(@vroot, 'README.txt'))
     assert !File.file?(File.join(@vroot, 'file1'))
     assert_nil r[:select]
+    assert_match(/access denied/i, r[:error])
+  end
+
+  def test_upload_permissions
+    @elfinder.options = {
+      :perms => {
+        '.' => {:write => false}
+      }
+    }
+    h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
+    uploads = []
+    uploads << File.open(File.join(@vroot, 'foo/philip.txt'))
+    h, r = @elfinder.run(:cmd => 'upload', :upload => uploads, :current => r[:cwd][:hash])
+    assert !File.exist?(File.join(@vroot, 'philip.txt'))
+    assert_nil r[:select]
+    assert_match(/access denied/i, r[:error])
+  end
+
+
+  def test_read_file_permissions
+    @elfinder.options = {
+      :perms => {
+        'README.txt' => {:read => false}
+      }
+    }
+
+    h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
+    target = r[:cdc].find{|e| e[:name] == 'README.txt'}
+    h, r = @elfinder.run(:cmd => 'read', :target => target[:hash])
+    
+    assert_nil r[:content]
     assert_match(/access denied/i, r[:error])
   end
 
