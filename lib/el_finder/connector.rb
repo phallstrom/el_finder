@@ -83,7 +83,15 @@ module ElFinder
 
       if target.nil?
         _open(@root)
-      elsif target.file?
+        return
+      end
+
+      if perms_for(target)[:read] == false
+        @response[:error] = @options[:i18n][:access_denied]
+        return
+      end
+
+      if target.file?
         command_not_implemented
       elsif target.directory?
         @response[:cwd] = cwd_for(target)
@@ -119,6 +127,11 @@ module ElFinder
 
     #
     def _mkdir
+      if perms_for(@current)[:write] == false
+        @response[:error] = @options[:i18n][:access_denied]
+        return
+      end
+
       dir = @current + @params[:name]
       if !dir.exist? && dir.mkdir
         @params[:tree] = true
