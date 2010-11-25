@@ -9,11 +9,13 @@ open-source file manager for web, written in JavaScript using jQuery UI.
 
 == Features/Problems:
 
+* Does not yet support permissions. (Don't believe the code, it's not stable.)
 * Does not yet support archive/extraction.
 * Does not yet support thumbnail generation.
 
 == Todo:
 
+* Does not yet support permissions.
 * Add support for archive/extraction.
 * Add support for thumbnail generation.
 * Document library.
