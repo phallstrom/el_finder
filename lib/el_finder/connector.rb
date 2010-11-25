@@ -224,13 +224,13 @@ module ElFinder
       @targets.to_a.each do |src|
         if perms_for(src)[:read] == false
           @response[:error] ||= 'Some files were not copied.'
-          @response[:errorData][src.basename] = "Access Denied"
+          @response[:errorData][src.basename.to_s] = "Access Denied"
           return
         else
           dst = from_hash(@params[:dst]) + src.basename
           if dst.exist?
             @response[:error] ||= 'Some files were unable to be copied'
-            @response[:errorData][src.basename] = "already exists in '#{dst.dirname.relative_path_from(@root)}'"
+            @response[:errorData][src.basename.to_s] = "already exists in '#{dst.dirname.relative_path_from(@root)}'"
           else
             if @params[:cut].to_i > 0
               File.rename(src, dst)
@@ -258,7 +258,7 @@ module ElFinder
         @targets.to_a.each do |target|
           if perms_for(target)[:rm] == false
             @response[:error] ||= 'Some files/directories were unable to be removed'
-            @response[:errorData][src.basename] = "Access Denied"
+            @response[:errorData][src.basename.to_s] = "Access Denied"
           else
             FileUtils.rm_rf(target)
           end
@@ -270,10 +270,14 @@ module ElFinder
 
     #
     def _duplicate
-      if perms_for(@target)[:read] == false || perms_for(@current)[:write] == false 
+      if perms_for(@target)[:read] == false 
         @response[:error] = 'Access Denied'
-        @response[:errorData][@target.basename] = 'Unable to read'
-        @response[:errorData][@current.basename] = 'Unable to write'
+        @response[:errorData][@target.basename.to_s] = 'Unable to read'
+        return
+      end
+      if perms_for(@target.dirname)[:write] == false 
+        @response[:error] = 'Access Denied'
+        @response[:errorData][@target.dirname.to_s] = 'Unable to write'
         return
       end
 

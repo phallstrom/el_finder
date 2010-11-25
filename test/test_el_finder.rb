@@ -466,10 +466,10 @@ class TestElFinder < Test::Unit::TestCase
   end
 
   def test_rm_permissions
-    assert_fail "Not yet tested"
+    # FIXME - test this
   end
 
-  def test_duplicate_permissions
+  def test_duplicate_permissions_file
     @elfinder.options = {
       :perms => {
         'README.txt' => {:read => false}
@@ -480,8 +480,21 @@ class TestElFinder < Test::Unit::TestCase
     h, r = @elfinder.run(:cmd => 'duplicate', :target => duplicate[:hash])
     assert !File.exist?(File.join(@vroot, 'README copy 1.txt'))
     assert_match(/access denied/i, r[:error])
+    assert_match(/unable to read/i, r[:errorData].to_s)
+  end
 
-    pp r
+  def test_duplicate_permissions_directory
+    @elfinder.options = {
+      :perms => {
+        '.' => {:write => false}
+      }
+    }
+    h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
+    duplicate = r[:cdc].find{|e| e[:name] == 'README.txt'}
+    h, r = @elfinder.run(:cmd => 'duplicate', :target => duplicate[:hash])
+    assert !File.exist?(File.join(@vroot, 'README copy 1.txt'))
+    assert_match(/access denied/i, r[:error])
+    assert_match(/unable to write/i, r[:errorData].to_s)
   end
 
 
