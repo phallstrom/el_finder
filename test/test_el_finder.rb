@@ -387,9 +387,23 @@ class TestElFinder < Test::Unit::TestCase
     assert !File.directory?(File.join(@vroot, 'foo', 'dir1'))
     assert_nil r[:select]
     assert_match(/access denied/i, r[:error])
-
   end
 
+  def test_mkfile_permissions
+    @elfinder.options = {
+      :perms => {
+        'foo' => {:write => false}
+      }
+    }
+    h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
+    target = r[:cdc].find{|e| e[:name] == 'foo'}
+    h1, r = @elfinder.run(:cmd => 'open', :target => target[:hash])
+
+    h, r = @elfinder.run(:cmd => 'mkfile', :current => r[:cwd][:hash], :name => 'file1')
+    assert !File.file?(File.join(@vroot, 'foo', 'file1'))
+    assert_nil r[:select]
+    assert_match(/access denied/i, r[:error])
+  end
 
   def test_read_file_permissions
     @elfinder.options = {
