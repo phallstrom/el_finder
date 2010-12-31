@@ -1,3 +1,4 @@
+require 'fileutils'
 require 'pathname'
 
 module ElFinder
@@ -12,6 +13,14 @@ module ElFinder
     #
     def join(*args)
       self.class.new(super(*args).to_s)
+    end
+
+    #
+    def rename(to)
+      super(to)
+    rescue Errno::EXDEV
+      FileUtils.move(self.to_s, to.to_s)
+      @path = to.to_s
     end
 
     #

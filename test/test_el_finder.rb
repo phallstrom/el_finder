@@ -294,7 +294,7 @@ class TestElFinder < Test::Unit::TestCase
       case e[:name]
       when 'elfinder.png'
         assert_equal true, e[:read]
-        assert_equal false, e[:write]
+        assert_equal true, e[:write]
         assert_equal false, e[:rm]
       when 'foo'
         assert_equal true, e[:read]
@@ -302,12 +302,12 @@ class TestElFinder < Test::Unit::TestCase
         assert_equal false, e[:rm]
       when 'pjkh.png'
         assert_equal false, e[:read]
-        assert_equal false, e[:write]
+        assert_equal true, e[:write]
         assert_equal false, e[:rm]
       when 'README.txt'
         assert_equal true, e[:read]
         assert_equal false, e[:write]
-        assert_equal false, e[:rm]
+        assert_equal true, e[:rm]
       end
     end
   end
@@ -401,10 +401,26 @@ class TestElFinder < Test::Unit::TestCase
     assert_match(/access denied/i, r[:error])
   end
 
-  def test_rename_permissions
+  def test_rename_permissions_file_rm_false
     @elfinder.options = {
       :perms => {
-        'README.txt' => {:write => false}
+        'README.txt' => {:rm => false}
+      }
+    }
+
+    h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
+    target = r[:cdc].find{|e| e[:name] == 'README.txt'}
+    h1, r = @elfinder.run(:cmd => 'rename', :target => target[:hash], :current => r[:cwd][:hash], :name => 'file1')
+    assert File.file?(File.join(@vroot, 'README.txt'))
+    assert !File.file?(File.join(@vroot, 'file1'))
+    assert_nil r[:select]
+    assert_match(/access denied/i, r[:error])
+  end
+
+  def test_rename_permissions_dir_write_false
+    @elfinder.options = {
+      :perms => {
+        '.' => {:write => false}
       }
     }
 
@@ -465,8 +481,31 @@ class TestElFinder < Test::Unit::TestCase
     assert File.exist?(File.join(@vroot, 'foo', 'elfinder.png'))
   end
 
-  def test_rm_permissions
-    # FIXME - test this
+  def test_rm_permissions_file_rm_false
+    @elfinder.options = {
+      :perms => {
+        /.*\.png/ => {:rm => false}
+      }
+    }
+    h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
+    h, r = @elfinder.run(:cmd => 'rm', :targets => r[:cdc].map{|e| e[:hash]})
+
+    assert !File.exist?(File.join(@vroot, 'README.txt'))
+    assert File.exist?(File.join(@vroot, 'pjkh.png'))
+    assert File.exist?(File.join(@vroot, 'elfinder.png'))
+    assert !File.exist?(File.join(@vroot, 'foo'))
+
+    assert_match(/unable to be removed/i, r[:error])
+    assert_match(/access denied/i, r[:errorData].to_s)
+  end
+
+  def test_rm_permissions_chmod_perm_hack
+    h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
+    File.unlink(File.join(@vroot, 'pjkh.png'))
+    h, r = @elfinder.run(:cmd => 'rm', :targets => r[:cdc].map{|e| e[:hash]})
+
+    assert_match(/unable to be removed/i, r[:error])
+    assert_match(/pjkh.png.*remove failed/i, r[:errorData].to_s)
   end
 
   def test_duplicate_permissions_file
@@ -513,19 +552,6 @@ class TestElFinder < Test::Unit::TestCase
     assert_match(/access denied/i, r[:error])
   end
 
-  def test_edit_permissions_read
-    @elfinder.options = {
-      :perms => {
-        'README.txt' => {:read => false}
-      }
-    }
-    h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
-    file = r[:cdc].find{|e| e[:name] == 'README.txt'}
-    h, r = @elfinder.run(:cmd => 'edit', :target => file[:hash], :content => 'Hello')
-    assert_match(/access denied/i, r[:error])
-    assert_not_equal 'Hello', File.read(File.join(@vroot, 'README.txt'))
-  end
-
   def test_edit_permissions_write
     @elfinder.options = {
       :perms => {
@@ -537,19 +563,6 @@ class TestElFinder < Test::Unit::TestCase
     h, r = @elfinder.run(:cmd => 'edit', :target => file[:hash], :content => 'Hello')
     assert_match(/access denied/i, r[:error])
     assert_not_equal 'Hello', File.read(File.join(@vroot, 'README.txt'))
-  end
-
-  def test_resize_permissions_read
-    @elfinder.options = {
-      :perms => {
-        'pjkh.png' => {:read => false}
-      }
-    }
-    h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
-    file = r[:cdc].find{|e| e[:name] == 'pjkh.png'}
-    h, r = @elfinder.run(:cmd => 'resize', :target => file[:hash], :current => r[:cwd][:hash], :width => '50', :height => '25')
-    assert File.exist?(File.join(@vroot, 'pjkh.png'))
-    assert_equal '100x100', ElFinder::ImageSize.for(File.join(@vroot, 'pjkh.png')).to_s
   end
 
   def test_resize_permissions_write

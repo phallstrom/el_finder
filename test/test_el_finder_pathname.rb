@@ -59,6 +59,30 @@ class TestElFinderPathname < Test::Unit::TestCase
 
   ################################################################################
 
+  def test_rename_on_same_filesystem
+    file = ElFinder::Pathname.new_with_root(@vroot, 'old.txt')
+    FileUtils.touch(file)
+    assert_equal true, File.exist?(File.join(@vroot, 'old.txt'))
+    file.rename(File.join(@vroot, 'new.txt'))
+    assert_equal false, File.exist?(File.join(@vroot, 'old.txt'))
+    assert_equal true, File.exist?(File.join(@vroot, 'new.txt'))
+  end
+
+  def test_rename_on_different_filesystem
+    if File.directory?('/Volumes/MyBook')
+      file = ElFinder::Pathname.new_with_root(@vroot, 'old.txt')
+      FileUtils.touch(file)
+      assert_equal true, File.exist?(File.join(@vroot, 'old.txt'))
+      file.rename('/Volumes/MyBook/elfinder.rename.test.safe.to.delete')
+      assert_equal false, File.exist?(File.join(@vroot, 'old.txt'))
+      assert_equal true, File.exist?('/Volumes/MyBook/elfinder.rename.test.safe.to.delete')
+      file.unlink
+      assert_equal false, File.exist?('/Volumes/MyBook/elfinder.rename.test.safe.to.delete')
+    end
+  end
+
+  ################################################################################
+
   def test_relative_to_method
     assert_equal "", ElFinder::Pathname.new_with_root(@vroot).relative_to(::Pathname.new(@vroot)).to_s
     assert_equal "foo.txt", ElFinder::Pathname.new_with_root(@vroot, 'foo.txt').relative_to(::Pathname.new(@vroot)).to_s

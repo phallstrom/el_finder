@@ -170,13 +170,13 @@ module ElFinder
       to = @current + @params[:name]
 
       perms_for_target = perms_for(@target)
-      if perms_for_target[:read] == false || perms_for_target[:write] == false || perms_for_target[:rm] == false
+      if perms_for_target[:rm] == false
         @response[:error] = 'Access Denied'
         return
       end
 
-      perms_for_to = perms_for(to)
-      if perms_for_to[:write] == false
+      perms_for_current = perms_for(@current)
+      if perms_for_current[:write] == false
         @response[:error] = 'Access Denied'
         return
       end
@@ -222,7 +222,7 @@ module ElFinder
       end
 
       @targets.to_a.each do |src|
-        if perms_for(src)[:read] == false
+        if perms_for(src)[:read] == false || (@params[:cut].to_i > 0 && perms_for(src)[:rm] == false)
           @response[:error] ||= 'Some files were not copied.'
           @response[:errorData][src.basename.to_s] = "Access Denied"
           return
@@ -233,7 +233,7 @@ module ElFinder
             @response[:errorData][src.basename.to_s] = "already exists in '#{dst.dirname.relative_path_from(@root)}'"
           else
             if @params[:cut].to_i > 0
-              File.rename(src, dst)
+              src.rename(dst)
             else
               if src.directory?
                 FileUtils.cp_r(src, dst)
@@ -249,19 +249,12 @@ module ElFinder
     end # of paste
 
     #
-    # FIXME - Need to handle case of writable directory, but unremovable file within it and other nested situations.
-    #
     def _rm
       if @targets.empty?
         @response[:error] = "No files were selected for removal"
       else
         @targets.to_a.each do |target|
-          if perms_for(target)[:rm] == false
-            @response[:error] ||= 'Some files/directories were unable to be removed'
-            @response[:errorData][src.basename.to_s] = "Access Denied"
-          else
-            FileUtils.rm_rf(target)
-          end
+          remove_target(target)
         end
         @params[:tree] = true
         _open(@current)
@@ -302,7 +295,7 @@ module ElFinder
 
     #
     def _edit
-      if perms_for(@target)[:read] == true && perms_for(@target)[:write] == true
+      if perms_for(@target)[:write] == true
         @target.open('w') { |f| f.write @params[:content] }
         @response[:file] = cdc_for(@target)
       else
@@ -331,7 +324,7 @@ module ElFinder
         command_not_implemented
       else
         if @target.file?
-          if perms_for(@target)[:read] == true && perms_for(@target)[:write] == true
+          if perms_for(@target)[:write] == true
             image_resize_handler.resize(@target, :width => @params[:width].to_i, :height => @params[:height].to_i)
             @response[:select] = [to_hash(@target)]
             _open(@current)
@@ -346,6 +339,26 @@ module ElFinder
     
     ################################################################################
     private
+
+    #
+    def remove_target(target)
+      if target.directory?
+        target.children.each do |child|
+          remove_target(child)
+        end
+      end
+      if perms_for(target)[:rm] == false
+        @response[:error] ||= 'Some files/directories were unable to be removed'
+        @response[:errorData][target.basename.to_s] = "Access Denied"
+      else
+        begin
+          target.unlink
+        rescue
+          @response[:error] ||= 'Some files/directories were unable to be removed'
+          @response[:errorData][target.basename.to_s] = "Remove failed"
+        end
+      end
+    end
 
     #
     def mime_handler
@@ -401,7 +414,7 @@ module ElFinder
           :url => (@options[:url] + '/' + pathname.relative_path_from(@root).to_s)
         )
 
-        if response[:mime] =~ /image/ && !image_size_handler.nil? && !image_resize_handler.nil?
+        if pathname.readable? && response[:mime] =~ /image/ && !image_size_handler.nil? && !image_resize_handler.nil?
           response.merge!(
             :resize => true,
             :dim => image_size_handler.for(pathname)
@@ -437,17 +450,8 @@ module ElFinder
       response[:write] &&= @options[:default_perms][:write]
 
       response[:rm] = pathname != @root 
-      response[:rm] &&= response[:write]
       response[:rm] &&= specific_perm_for(pathname, :rm)
       response[:rm] &&= @options[:default_perms][:rm]
-      
-
-      # If you can't write to a file you shouldn't be able to remove it.  And
-      # vice versa.  If you can do one of them you can effectively do either
-      # (either remove it, or wipe it's contents)
-      if pathname.file?
-        response[:write] = response[:rm] = response[:write] && response[:rm]
-      end
 
       response
     end # of perms_for
