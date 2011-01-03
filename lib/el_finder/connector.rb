@@ -321,7 +321,8 @@ module ElFinder
         command_not_implemented
       else
         if @target.file?
-          if perms_for(@target)[:write] == true
+          perms = perms_for(@target)
+          if perms[:read] == true && perms[:write] == true
             image_resize_handler.resize(@target, :width => @params[:width].to_i, :height => @params[:height].to_i)
             @response[:select] = [to_hash(@target)]
             _open(@current)
