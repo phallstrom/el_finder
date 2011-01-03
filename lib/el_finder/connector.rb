@@ -292,7 +292,8 @@ module ElFinder
 
     #
     def _edit
-      if perms_for(@target)[:write] == true
+      perms = perms_for(@target)
+      if perms[:read] == true && perms[:write] == true
         @target.open('w') { |f| f.write @params[:content] }
         @response[:file] = cdc_for(@target)
       else

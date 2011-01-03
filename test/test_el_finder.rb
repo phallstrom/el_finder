@@ -565,6 +565,19 @@ class TestElFinder < Test::Unit::TestCase
     assert_not_equal 'Hello', File.read(File.join(@vroot, 'README.txt'))
   end
 
+  def test_edit_permissions_read
+    @elfinder.options = {
+      :perms => {
+        'README.txt' => {:read => false}
+      }
+    }
+    h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
+    file = r[:cdc].find{|e| e[:name] == 'README.txt'}
+    h, r = @elfinder.run(:cmd => 'edit', :target => file[:hash], :content => 'Hello')
+    assert_match(/access denied/i, r[:error])
+    assert_not_equal 'Hello', File.read(File.join(@vroot, 'README.txt'))
+  end
+
   def test_resize_permissions_write
     @elfinder.options = {
       :perms => {
@@ -579,7 +592,7 @@ class TestElFinder < Test::Unit::TestCase
     assert_equal '100x100', ElFinder::ImageSize.for(File.join(@vroot, 'pjkh.png')).to_s
   end
 
-  def test_resize_permissions_write
+  def test_resize_permissions_read
     @elfinder.options = {
       :perms => {
         'pjkh.png' => {:read => false}
