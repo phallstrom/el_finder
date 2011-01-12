@@ -83,10 +83,6 @@ class TestPathname < Test::Unit::TestCase
 
   ################################################################################
 
-  def test_shellescape
-    assert_respond_to ElFinder::Pathname.new_with_root(@vroot, 'foo.txt'), :shellescape
-  end
-
   def test_basename_without_extension
     file = ElFinder::Pathname.new_with_root(@vroot, 'foo.txt')
     assert_respond_to file, :basename_without_extension
