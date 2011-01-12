@@ -13,8 +13,8 @@ module ElFinder
       :disabled_commands => [],
       :show_dot_files => true,
       :upload_max_size => '50M',
-      :archivers => [],
-      :extractors => [],
+      :archivers => {},
+      :extractors => {},
       :home => 'Home',
       :default_perms => {:read => true, :write => true, :rm => true},
       :perms => []
@@ -114,8 +114,8 @@ module ElFinder
           @response[:params] = {
             :dotFiles => @options[:show_dot_files],
             :uplMaxSize => @options[:upload_max_size],
-            :archives => @options[:archivers],
-            :extract => @options[:extractors],
+            :archives => @options[:archivers].keys,
+            :extract => @options[:extractors].keys,
             :url => @options[:url]
           }
         end
@@ -303,7 +303,16 @@ module ElFinder
 
     #
     def _extract
-      command_not_implemented
+      @response[:error] = 'Invalid Parameters' and return unless @target.file? && @current.directory?
+      @response[:error] = 'Access Denied' and return unless perms_for(@target)[:read] == true && perms_for(@current)[:write] == true
+      @response[:error] = 'No extractor available for this file type' and return if (extractor = @options[:extractors][mime_handler.for(@target)]).nil?
+      cmd = ['cd', @current.shellescape, '&&', extractor, @target.basename.shellescape].flatten.join(' ')
+      if system(cmd)
+        @params[:tree] = true
+        _open(@current)
+      else
+        @response[:error] = 'Unable to extract files from archive'
+      end
     end # of extract
 
     #
