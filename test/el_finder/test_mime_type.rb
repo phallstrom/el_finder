@@ -1,7 +1,7 @@
 require "test/unit"
 require "el_finder"
 
-class TestElFinderMimeType < Test::Unit::TestCase
+class TestMimeType < Test::Unit::TestCase
 
   def test_that_method_exists
     assert_respond_to ElFinder::MimeType, :for

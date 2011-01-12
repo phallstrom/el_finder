@@ -2,12 +2,12 @@ require "test/unit"
 require "el_finder"
 require "fileutils"
 
-class TestElFinderPathname < Test::Unit::TestCase
+class TestPathname < Test::Unit::TestCase
 
   def setup
     @vroot = '/tmp/elfinder'
     FileUtils.mkdir_p(@vroot)
-    FileUtils.cp_r "#{File.dirname(__FILE__)}/files/.",  @vroot
+    FileUtils.cp_r "#{File.dirname(__FILE__)}/../files/.",  @vroot
   end
 
   def teardown
