@@ -438,9 +438,9 @@ module ElFinder
 
       if pathname.symlink?
         response.merge!(
-          :link => to_hash(pathname.readlink), # hash of file to which point link
-          :linkTo => pathname.readlink.relative_path_from(pathname.dirname).to_s, # relative path to file on which points links
-          :parent => to_hash(pathname.readlink.dirname) # hash of directory in which is linked file is located
+          :link => to_hash(ElFinder::Pathname.new_with_root(@root, pathname.readlink)), # hash of file to which point link
+          :linkTo => ElFinder::Pathname.new_with_root(@root, pathname.readlink).relative_path_from(pathname.dirname).to_s, # relative path to
+          :parent => to_hash(ElFinder::Pathname.new_with_root(@root, pathname.readlink.dirname)) # hash of directory in which is linked file 
         )
       end
 

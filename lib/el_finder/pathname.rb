@@ -25,6 +25,7 @@ module ElFinder
 
     #
     def self.new_with_root(root, path = '')
+      path = path.to_s.sub(root, '') if path.to_s[0,1] == '/'
       new(superclass.new(File.join(root, path)).cleanpath.to_s)
     end # of self.new_with_root
 
