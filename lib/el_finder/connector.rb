@@ -407,7 +407,6 @@ module ElFinder
       }.merge(perms_for(pathname))
     end
 
-    # TODO - Implement link, linkTo, and parent
     def cdc_for(pathname)
       response = {
         :name => pathname.basename.to_s,
@@ -420,12 +419,6 @@ module ElFinder
         response.merge!(
           :size => 0,
           :mime => 'directory'
-        )
-      elsif pathname.symlink?
-        response.merge!(
-          :link => 'FIXME',
-          :linkTo => 'FIXME',
-          :parent => 'FIXME'
         )
       elsif pathname.file?
         response.merge!(
@@ -441,6 +434,14 @@ module ElFinder
           )
         end
 
+      end
+
+      if pathname.symlink?
+        response.merge!(
+          :link => to_hash(pathname.readlink), # hash of file to which point link
+          :linkTo => pathname.readlink.relative_path_from(pathname.dirname).to_s, # relative path to file on which points links
+          :parent => to_hash(pathname.readlink.dirname) # hash of directory in which is linked file is located
+        )
       end
 
       return response
