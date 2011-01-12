@@ -47,7 +47,7 @@ the defaults.
          :perms => {
            /^(Welcome|README)$/ => {:read => true, :write => false, :rm => false},
            '.' => {:read => true, :write => false, :rm => false}, # '.' is the proper way to specify the home/root directory.
-           /^test$/ => {:read => true, :write => false, :rm => false},
+           /^test$/ => {:read => true, :write => true, :rm => false},
            'logo.png' => {:read => true},
            /\.png$/ => {:read => false} # This will cause 'logo.png' to be unreadable.  
                                         # Permissions err on the safe side. Once false, always false.
