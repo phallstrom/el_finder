@@ -9,13 +9,10 @@ open-source file manager for web, written in JavaScript using jQuery UI.
 
 == Features/Problems:
 
-* Does not yet support archive/extraction.
 * Does not yet support thumbnail generation.
 
 == Todo:
 
-* Add support for archive/extraction.
-* Add support for thumbnail generation.
 * Document library.
 * Document how to implement custom image size/resize methods.
 
@@ -46,7 +43,24 @@ the defaults.
     def elfinder
       h, r = ElFinder::Connector.new(
         :root => File.join(Rails.public_path, 'system', 'elfinder'),
-        :url => '/system/elfinder'
+        :url => '/system/elfinder',
+         :perms => {
+           /^(Welcome|README)$/ => {:read => true, :write => false, :rm => false},
+           '.' => {:read => true, :write => false, :rm => false}, # '.' is the proper way to specify the home/root directory.
+           /^test$/ => {:read => true, :write => false, :rm => false},
+           'logo.png' => {:read => true},
+           /\.png$/ => {:read => false} # This will cause 'logo.png' to be unreadable.  
+                                        # Permissions err on the safe side. Once false, always false.
+         },
+         :extractors => { 
+           'application/zip' => ['unzip', '-qq', '-o'], # Each argument will be shellescaped (also true for archivers)
+           'application/x-gzip' => ['tar', '-xzf'],
+         },
+         :archivers => { 
+           'application/zip' => ['.zip', 'zip', '-qr9'], # Note first argument is archive extension
+           'application/x-gzip' => ['.tgz', 'tar', '-czf'],
+           },
+
       ).run(params)
       headers.merge!(h)
       render (r.empty? ? {:nothing => true} : {:text => r.to_json}), :layout => false
