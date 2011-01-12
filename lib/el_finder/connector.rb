@@ -306,7 +306,7 @@ module ElFinder
       @response[:error] = 'Invalid Parameters' and return unless @target.file? && @current.directory?
       @response[:error] = 'Access Denied' and return unless perms_for(@target)[:read] == true && perms_for(@current)[:write] == true
       @response[:error] = 'No extractor available for this file type' and return if (extractor = @options[:extractors][mime_handler.for(@target)]).nil?
-      cmd = ['cd', @current.shellescape, '&&', extractor, @target.basename.shellescape].flatten.join(' ')
+      cmd = ['cd', @current.shellescape, '&&', extractor.map(&:shellescape), @target.basename.shellescape].flatten.join(' ')
       if system(cmd)
         @params[:tree] = true
         _open(@current)
@@ -323,7 +323,7 @@ module ElFinder
       extension = archiver.shift
       basename = @params[:name] || @targets.first.basename_without_extension
       archive = ElFinder::Pathname.new_with_root(@root, "#{basename}#{extension}").unique
-      cmd = ['cd', @current.shellescape, '&&', archiver, archive, @targets.map{|t| t.basename.shellescape}].flatten.join(' ')
+      cmd = ['cd', @current.shellescape, '&&', archiver.map(&:shellescape), archive.shellescape, @targets.map{|t| t.basename.shellescape}].flatten.join(' ')
       if system(cmd)
         @response[:select] = [to_hash(archive)]
         _open(@current)
