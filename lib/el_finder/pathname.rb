@@ -7,11 +7,11 @@ module ElFinder
     attr_reader :root, :path
 
     #
-    def initialize(root, path = '')
-      @root = root.is_a?(Pathname) ? root : ::Pathname.new(root)
+    def initialize(root, path = '.')
+      @root = root.is_a?(ElFinder::Pathname) ? root.root : ::Pathname.new(root)
 
       @path = ::Pathname.new(path) 
-      @path = path.is_a?(Pathname) ? path : ::Pathname.new(path)
+      @path = path.is_a?(ElFinder::Pathname) ? path.path : ::Pathname.new(path)
       if absolute?
         if @path.cleanpath.to_s.start_with?(@root.to_s)
           @path = ::Pathname.new @path.to_s.slice((@root.to_s.length + 1)..-1)
@@ -35,7 +35,7 @@ module ElFinder
 
     #
     def is_root?
-      @path.to_s.empty?
+      @path.to_s == '.'
     end
 
     #
@@ -85,7 +85,7 @@ module ElFinder
 
     #
     def dirname
-      @path.dirname
+      self.class.new(@root, @path.dirname)
     end # of basename
 
     #
@@ -95,8 +95,10 @@ module ElFinder
 
     #
     def to_s
-      @path.to_s
+      cleanpath.to_s
     end # of to_s
+    alias_method :to_str, :to_s
+
 
     #
     def children(with_directory=true)
@@ -106,6 +108,11 @@ module ElFinder
     #
     def touch(options = {})
       FileUtils.touch(cleanpath, options)
+    end
+
+    #
+    def relative_to(other)
+      @path.relative_path_from(other)
     end
     
     #
@@ -144,50 +151,27 @@ module ElFinder
       @path = to.path
     end # of rename
 
-    %w(
-      directory? 
-      exist? 
-      file? 
-      readable? 
-      writable?
-    ).each do |meth|
+    {
+      'directory?' => {:path => 'realpath', :rescue => true                             },
+      'exist?'     => {:path => 'realpath', :rescue => true                             },
+      'file?'      => {:path => 'realpath', :rescue => true                             },
+      'ftype'      => {:path => 'realpath',                                             },
+      'mkdir'      => {:path => 'fullpath',                  :args => '(*args)'         },
+      'mkdir'      => {:path => 'fullpath',                  :args => '(*args)'         },
+      'mtime'      => {:path => 'realpath',                                             },
+      'open'       => {:path => 'fullpath',                  :args => '(*args, &block)' },
+      'read'       => {:path => 'fullpath',                  :args => '(*args)'         },
+      'readlink'   => {:path => 'fullpath',                                             },
+      'readable?'  => {:path => 'realpath', :rescue => true                             },
+      'size'       => {:path => 'realpath',                                             },
+      'symlink?'   => {:path => 'fullpath',                                             },
+      'unlink'     => {:path => 'realpath',                                             },
+      'writable?'  => {:path => 'realpath', :rescue => true                             },
+    }.each_pair do |meth, opts|
       class_eval <<-METHOD, __FILE__, __LINE__ + 1
-        def #{meth}
-          realpath.#{meth}
-        rescue Errno::ENOENT
-          false
-        end
-      METHOD
-    end
-
-    %w(
-      mtime
-      unlink
-    ).each do |meth|
-      class_eval <<-METHOD, __FILE__, __LINE__ + 1
-        def #{meth}
-          realpath.#{meth}
-        end
-      METHOD
-    end
-
-    %w(
-      mkdir
-      read
-    ).each do |meth|
-      class_eval <<-METHOD, __FILE__, __LINE__ + 1
-        def #{meth}(*args)
-          fullpath.#{meth}(*args)
-        end
-      METHOD
-    end
-
-    %w(
-      open
-    ).each do |meth|
-      class_eval <<-METHOD, __FILE__, __LINE__ + 1
-        def #{meth}(*args, &block)
-          fullpath.#{meth}(*args, &block)
+        def #{meth}#{opts[:args]}
+          #{opts[:path]}.#{meth}#{opts[:args]}
+        #{"rescue Errno::ENOENT\nfalse" if opts[:rescue]}
         end
       METHOD
     end

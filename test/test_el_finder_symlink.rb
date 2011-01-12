@@ -51,8 +51,6 @@ class TestElFinderSymlink < Test::Unit::TestCase
     h, r = @elfinder.run(:cmd => 'open', :target => foo[:hash])
     source = r[:cdc].find{|e| e[:name] == 'tom.txt'}
 
-    pp source
-    pp target
 
     assert_equal source[:hash], target[:link]
     assert_equal 'foo/tom.txt', target[:linkTo]

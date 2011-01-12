@@ -63,12 +63,12 @@ module ElFinder
 
     #
     def to_hash(pathname)
-      Base64.encode64(pathname == @root ? '/' : pathname.relative_path_from(@root).to_s).chomp
+      Base64.encode64(pathname.path.to_s).chomp
     end # of to_hash
 
     #
     def from_hash(hash)
-      pathname = ElFinder::Pathname.new_with_root(@root, Base64.decode64(hash))
+      pathname = @root + Base64.decode64(hash)
     end # of from_hash
 
     #
@@ -154,7 +154,7 @@ module ElFinder
       end
 
       file = @current + @params[:name]
-      if !file.exist? && FileUtils.touch(file)
+      if !file.exist? && file.touch
         @response[:select] = [to_hash(file)]
         _open(@current)
       else
@@ -199,7 +199,7 @@ module ElFinder
       select = []
       @params[:upload].to_a.each do |file|
         dst = @current + @options[:original_filename_method].call(file)
-        FileUtils.mv(file.path, dst)
+        FileUtils.mv(file.path, dst.fullpath)
         select << to_hash(dst)
       end
       @response[:select] = select
@@ -227,15 +227,15 @@ module ElFinder
           dst = from_hash(@params[:dst]) + src.basename
           if dst.exist?
             @response[:error] ||= 'Some files were unable to be copied'
-            @response[:errorData][src.basename.to_s] = "already exists in '#{dst.dirname.relative_path_from(@root)}'"
+            @response[:errorData][src.basename.to_s] = "already exists in '#{dst.dirname}'"
           else
             if @params[:cut].to_i > 0
               src.rename(dst)
             else
               if src.directory?
-                FileUtils.cp_r(src, dst)
+                FileUtils.cp_r(src.fullpath, dst.fullpath)
               else
-                FileUtils.copy(src, dst)
+                FileUtils.cp(src.fullpath, dst.fullpath)
               end
             end
           end
@@ -273,9 +273,9 @@ module ElFinder
 
       duplicate = @target.duplicate
       if @target.directory?
-        FileUtils.cp_r(@target, duplicate)
+        FileUtils.cp_r(@target, duplicate.fullpath)
       else
-        FileUtils.copy(@target, duplicate)
+        FileUtils.copy(@target, duplicate.fullpath)
       end
       @response[:select] = [to_hash(duplicate)]
       _open(@current)
@@ -321,8 +321,8 @@ module ElFinder
       @response[:error] = 'Access Denied' and return unless !@targets.nil? && @targets.all?{|e| perms_for(e)[:read]} && perms_for(@current)[:write] == true
       @response[:error] = 'No archiver available for this file type' and return if (archiver = @options[:archivers][@params[:type]]).nil?
       extension = archiver.shift
-      basename = @params[:name] || @targets.first.basename_without_extension
-      archive = ElFinder::Pathname.new_with_root(@root, "#{basename}#{extension}").unique
+      basename = @params[:name] || @targets.first.basename_sans_extension
+      archive = (@root + "#{basename}#{extension}").unique
       cmd = ['cd', @current.to_s.shellescape, '&&', archiver.map(&:shellescape), archive.to_s.shellescape, @targets.map{|t| t.basename.to_s.shellescape}].flatten.join(' ')
       if system(cmd)
         @response[:select] = [to_hash(archive)]
@@ -401,7 +401,7 @@ module ElFinder
         :name => pathname.basename.to_s,
         :hash => to_hash(pathname),
         :mime => 'directory',
-        :rel => (@options[:home] + '/' + pathname.relative_path_from(@root).to_s),
+        :rel => (@options[:home] + '/' + pathname.path.to_s),
         :size => 0,
         :date => pathname.mtime.to_s,
       }.merge(perms_for(pathname))
@@ -424,7 +424,7 @@ module ElFinder
         response.merge!(
           :size => pathname.size, 
           :mime => mime_handler.for(pathname),
-          :url => (@options[:url] + '/' + pathname.relative_path_from(@root).to_s)
+          :url => (@options[:url] + '/' + pathname.path.to_s)
         )
 
         if pathname.readable? && response[:mime] =~ /image/ && !image_size_handler.nil? && !image_resize_handler.nil?
@@ -438,9 +438,9 @@ module ElFinder
 
       if pathname.symlink?
         response.merge!(
-          :link => to_hash(ElFinder::Pathname.new_with_root(@root, pathname.readlink)), # hash of file to which point link
-          :linkTo => ElFinder::Pathname.new_with_root(@root, pathname.readlink).relative_path_from(pathname.dirname).to_s, # relative path to
-          :parent => to_hash(ElFinder::Pathname.new_with_root(@root, pathname.readlink.dirname)) # hash of directory in which is linked file 
+          :link => to_hash(@root + pathname.readlink), # hash of file to which point link
+          :linkTo => (@root + pathname.readlink).relative_to(pathname.dirname.path).to_s, # relative path to
+          :parent => to_hash((@root + pathname.readlink).dirname) # hash of directory in which is linked file 
         )
       end
 
@@ -470,7 +470,7 @@ module ElFinder
       response[:write] &&= specific_perm_for(pathname, :write) 
       response[:write] &&= @options[:default_perms][:write]
 
-      response[:rm] = pathname != @root 
+      response[:rm] = !pathname.is_root?
       response[:rm] &&= specific_perm_for(pathname, :rm)
       response[:rm] &&= @options[:default_perms][:rm]
 
@@ -479,7 +479,8 @@ module ElFinder
 
     #
     def specific_perm_for(pathname, perm)
-      @options[:perms].select{ |k,v| pathname.relative_path_from(@root).to_s.send((k.is_a?(String) ? :== : :match), k) }.none?{|e| e.last[perm] == false}
+      pathname = pathname.path if pathname.is_a?(ElFinder::Pathname)
+      @options[:perms].select{ |k,v| pathname.to_s.send((k.is_a?(String) ? :== : :match), k) }.none?{|e| e.last[perm] == false}
     end # of specific_perm_for
     
     #

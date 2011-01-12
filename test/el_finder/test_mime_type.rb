@@ -24,7 +24,7 @@ class TestMimeType < Test::Unit::TestCase
   end
 
   def test_passing_pathname
-    assert_equal 'text/plain', ElFinder::MimeType.for(ElFinder::Pathname.new('README.txt'))
+    assert_equal 'text/plain', ElFinder::MimeType.for(ElFinder::Pathname.new('/tmp', 'README.txt'))
   end
 
 end

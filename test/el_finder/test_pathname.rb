@@ -44,7 +44,7 @@ class TestPathname < Test::Unit::TestCase
   def test_instance_variables_are_set_correctly_with_nil_path
     p = ElFinder::Pathname.new(@vroot)
     assert_equal @vroot, p.root.to_s
-    assert_equal '', p.path.to_s
+    assert_equal '.', p.path.to_s
   end
 
   def test_instance_variables_are_kind_of_pathname
@@ -115,6 +115,12 @@ class TestPathname < Test::Unit::TestCase
     assert_equal false, ElFinder::Pathname.new(@vroot, 'INVALID').exist?, "INVALID should not exist"
   end
 
+  def test_symlink?
+    File.symlink(File.join(@vroot, 'README.txt'), File.join(@vroot, 'symlink.txt'))
+    assert_equal true, ElFinder::Pathname.new(@vroot, 'symlink.txt').symlink?, "symlink.txt should be a symlink"
+    assert_equal false, ElFinder::Pathname.new(@vroot, 'README.txt').symlink?, "README.txt should not be a symlink"
+  end
+
   def test_readable?
     assert_equal true, ElFinder::Pathname.new(@vroot, 'foo').readable?, "foo should be readable"
     assert_equal true, ElFinder::Pathname.new(@vroot, 'README.txt').readable?, "README.txt should be readable"
@@ -159,13 +165,13 @@ class TestPathname < Test::Unit::TestCase
   end
 
   def test_dirname
-    assert_equal '.', ElFinder::Pathname.new(@vroot, 'README.txt').dirname.to_s
-    assert_equal 'foo', ElFinder::Pathname.new(@vroot, 'foo/tom.txt').dirname.to_s
+    assert_equal '.', ElFinder::Pathname.new(@vroot, 'README.txt').dirname.path.to_s
+    assert_equal 'foo', ElFinder::Pathname.new(@vroot, 'foo/tom.txt').dirname.path.to_s
   end
 
   def test_to_s
-    assert_equal 'README.txt', ElFinder::Pathname.new(@vroot, 'README.txt').to_s
-    assert_equal 'foo/tom.txt', ElFinder::Pathname.new(@vroot, 'foo/tom.txt').to_s
+    assert_equal "#{@vroot}/README.txt", ElFinder::Pathname.new(@vroot, 'README.txt').to_s
+    assert_equal "#{@vroot}/foo/tom.txt", ElFinder::Pathname.new(@vroot, 'foo/tom.txt').to_s
   end
 
   def test_children
