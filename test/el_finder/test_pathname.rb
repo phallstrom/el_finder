@@ -83,6 +83,12 @@ class TestPathname < Test::Unit::TestCase
 
   ################################################################################
 
+  def test_shellescape
+    assert_respond_to ElFinder::Pathname.new_with_root(@vroot, 'foo.txt'), :shellescape
+  end
+
+  ################################################################################
+
   def test_relative_to_method
     assert_equal "", ElFinder::Pathname.new_with_root(@vroot).relative_to(::Pathname.new(@vroot)).to_s
     assert_equal "foo.txt", ElFinder::Pathname.new_with_root(@vroot, 'foo.txt').relative_to(::Pathname.new(@vroot)).to_s

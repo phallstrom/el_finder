@@ -16,6 +16,11 @@ module ElFinder
     end
 
     #
+    def shellescape
+      to_s.shellescape
+    end
+
+    #
     def rename(to)
       super(to)
     rescue Errno::EXDEV
