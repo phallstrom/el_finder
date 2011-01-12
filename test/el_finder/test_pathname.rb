@@ -87,15 +87,33 @@ class TestPathname < Test::Unit::TestCase
     assert_respond_to ElFinder::Pathname.new_with_root(@vroot, 'foo.txt'), :shellescape
   end
 
-  ################################################################################
+  def test_basename_without_extension
+    file = ElFinder::Pathname.new_with_root(@vroot, 'foo.txt')
+    assert_respond_to file, :basename_without_extension
+    assert_equal 'foo', file.basename_without_extension.to_s
+  end
+
+  def test_unique_on_create
+    file = ElFinder::Pathname.new_with_root(@vroot, 'foo.txt')
+    assert_equal 'foo.txt', file.unique.basename.to_s
+  end
+
+  def test_unique_conflict
+    file = ElFinder::Pathname.new_with_root(@vroot, 'pjkh.png')
+    assert_equal 'pjkh 1.png', file.unique.basename.to_s
+  end
+
+  def test_unique_conflict_twice
+    FileUtils.touch ElFinder::Pathname.new_with_root(@vroot, 'pjkh 1.png')
+    file = ElFinder::Pathname.new_with_root(@vroot, 'pjkh.png')
+    assert_equal 'pjkh 2.png', file.unique.basename.to_s
+  end
 
   def test_relative_to_method
     assert_equal "", ElFinder::Pathname.new_with_root(@vroot).relative_to(::Pathname.new(@vroot)).to_s
     assert_equal "foo.txt", ElFinder::Pathname.new_with_root(@vroot, 'foo.txt').relative_to(::Pathname.new(@vroot)).to_s
     assert_equal "foo/bar.txt", ElFinder::Pathname.new_with_root(@vroot, 'foo/bar.txt').relative_to(::Pathname.new(@vroot)).to_s
   end
-
-  ################################################################################
 
   def test_class_type
     assert_kind_of ElFinder::Pathname, ElFinder::Pathname.new_with_root(@vroot, 'foo')

@@ -26,12 +26,17 @@ module ElFinder
     rescue Errno::EXDEV
       FileUtils.move(self.to_s, to.to_s)
       @path = to.to_s
-    end
+    end # of rename
 
     #
     def self.new_with_root(root, path = '')
       new(superclass.new(File.join(root, path)).cleanpath.to_s)
     end # of self.new_with_root
+
+    #
+    def basename_without_extension
+      basename(extname)
+    end
 
     #
     def duplicate
@@ -46,10 +51,26 @@ module ElFinder
 
       begin
         copy += 1
-        duplicate = self.class.superclass.new(_dirname + "#{_basename} copy #{copy}#{_extname}")
-      end while duplicate.exist?
-      duplicate
+        new_file = self.class.superclass.new(_dirname + "#{_basename} copy #{copy}#{_extname}")
+      end while new_file.exist?
+      new_file
     end # of duplicate
+
+    #
+    def unique
+      return self.dup unless self.file?
+
+      _dirname = dirname
+      _extname = extname
+      _basename = basename(_extname)
+      copy = 0
+
+      begin
+        copy += 1
+        new_file = self.class.superclass.new(_dirname + "#{_basename} #{copy}#{_extname}")
+      end while new_file.exist?
+      new_file
+    end # of unique
 
     #
     def relative_to(pathname)
