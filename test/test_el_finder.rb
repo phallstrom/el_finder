@@ -69,6 +69,18 @@ class TestElFinder < Test::Unit::TestCase
     end
   end
 
+  def test_cwd_name_for_root
+    h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
+    assert r[:cwd][:name], 'Home'
+  end
+
+  def test_cwd_name_for_sub_directory
+    h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
+    target = r[:cdc].find{|e| e[:name] == 'foo'}
+    h, r = @elfinder.run(:cmd => 'open', :target => target[:hash])
+    assert r[:cwd][:name], 'Home/foo'
+  end
+
   def test_mkdir
     h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
     h1, r1 = @elfinder.run(:cmd => 'mkdir', :current => r[:cwd][:hash], :name => 'dir1')

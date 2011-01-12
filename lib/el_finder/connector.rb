@@ -401,7 +401,7 @@ module ElFinder
         :name => pathname.basename.to_s,
         :hash => to_hash(pathname),
         :mime => 'directory',
-        :rel => (@options[:home] + '/' + pathname.path.to_s),
+        :rel => pathname.is_root? ? @options[:home] : (@options[:home] + '/' + pathname.path.to_s),
         :size => 0,
         :date => pathname.mtime.to_s,
       }.merge(perms_for(pathname))
