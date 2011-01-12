@@ -317,7 +317,19 @@ module ElFinder
 
     #
     def _archive
-      command_not_implemented
+      @response[:error] = 'Invalid Parameters' and return unless !@targets.nil? && @targets.all?{|e| e.exist?} && @current.directory?
+      @response[:error] = 'Access Denied' and return unless !@targets.nil? && @targets.all?{|e| perms_for(e)[:read]} && perms_for(@current)[:write] == true
+      @response[:error] = 'No archiver available for this file type' and return if (archiver = @options[:archivers][@params[:type]]).nil?
+      extension = archiver.shift
+      basename = @params[:name] || @targets.first.basename_without_extension
+      archive = ElFinder::Pathname.new_with_root(@root, "#{basename}#{extension}").unique
+      cmd = ['cd', @current.shellescape, '&&', archiver, archive, @targets.map{|t| t.basename.shellescape}].flatten.join(' ')
+      if system(cmd)
+        @response[:select] = [to_hash(archive)]
+        _open(@current)
+      else
+        @response[:error] = 'Unable to create archive'
+      end
     end # of archive
 
     #
