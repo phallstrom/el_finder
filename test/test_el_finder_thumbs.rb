@@ -21,7 +21,7 @@ class TestElFinderThumbs < Test::Unit::TestCase
   def test_thumbs_directory_exists
     @elfinder.options = { :thumbs => true, :thumbs_directory => '.thumbs' }
     h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
-    assert_equal true, File.directory?(File.join(@vroot, '.thumbs'))
+    assert File.directory?(File.join(@vroot, '.thumbs'))
   end
 
   def test_thumbs_directory_cannot_be_created
@@ -55,15 +55,15 @@ class TestElFinderThumbs < Test::Unit::TestCase
     @elfinder.options = { :thumbs => true }
     h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
     h, r = @elfinder.run(:cmd => 'tmb', :current => '')
-    assert_equal true, File.exist?(File.join(@vroot, '.thumbs', "#{@elfinder.to_hash(ElFinder::Pathname.new(@vroot, 'elfinder.png'))}.png"))
-    assert_equal true, File.exist?(File.join(@vroot, '.thumbs', "#{@elfinder.to_hash(ElFinder::Pathname.new(@vroot, 'pjkh.png'))}.png"))
+    assert File.exist?(File.join(@vroot, '.thumbs', "#{@elfinder.to_hash(ElFinder::Pathname.new(@vroot, 'elfinder.png'))}.png"))
+    assert File.exist?(File.join(@vroot, '.thumbs', "#{@elfinder.to_hash(ElFinder::Pathname.new(@vroot, 'pjkh.png'))}.png"))
   end
 
   def test_thumbs_of_non_images_are_not_created
     @elfinder.options = { :thumbs => true }
     h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
     h, r = @elfinder.run(:cmd => 'tmb', :current => '')
-    assert_equal false, File.exist?(File.join(@vroot, '.thumbs', "#{@elfinder.to_hash(ElFinder::Pathname.new(@vroot, 'README.txt'))}.png"))
+    assert !File.exist?(File.join(@vroot, '.thumbs', "#{@elfinder.to_hash(ElFinder::Pathname.new(@vroot, 'README.txt'))}.png"))
   end
 
   def test_tmb_response
@@ -89,6 +89,22 @@ class TestElFinderThumbs < Test::Unit::TestCase
 
     assert_equal true, r[:tmb]
     assert_equal 1, r[:images].size
+  end
+
+  def test_thumbnail_removed_when_image_removed
+    @elfinder.options = { :thumbs => true }
+    pjkh_thumb = File.join(@vroot, '.thumbs', "#{@elfinder.to_hash(ElFinder::Pathname.new(@vroot, 'elfinder.png'))}.png")
+    elfinder_thumb = File.join(@vroot, '.thumbs', "#{@elfinder.to_hash(ElFinder::Pathname.new(@vroot, 'elfinder.png'))}.png")
+    Dir.mkdir(File.join(@vroot, '.thumbs'))
+    FileUtils.touch pjkh_thumb
+    FileUtils.touch elfinder_thumb
+
+    h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
+    h, r = @elfinder.run(:cmd => 'rm', :targets => r[:cdc].select{|e| e[:mime] =~ /image/}.map{|e| e[:hash]})
+
+    assert !File.exist?(pjkh_thumb)
+    assert !File.exist?(elfinder_thumb)
+
   end
 
 

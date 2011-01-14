@@ -193,8 +193,8 @@ class TestElFinder < Test::Unit::TestCase
 
   def test_rm
     h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
-    h, r = @elfinder.run(:cmd => 'rm', :current => r[:cwd][:hash], :targets => [])
-    assert_match(/no files/i, r[:error])
+    h, r1 = @elfinder.run(:cmd => 'rm', :current => r[:cwd][:hash], :targets => [])
+    assert_match(/no files/i, r1[:error])
 
     h, r = @elfinder.run(:cmd => 'rm', :targets => r[:cdc].reject{|e| e[:mime] =~ /image/}.map{|e| e[:hash]})
     assert !File.exist?(File.join(@vroot, 'README.txt'))

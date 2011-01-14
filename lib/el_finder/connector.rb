@@ -405,6 +405,9 @@ module ElFinder
       else
         begin
           target.unlink
+          if (thumbnail = thumbnail_for(target)).file?
+            thumbnail.unlink
+          end
         rescue
           @response[:error] ||= 'Some files/directories were unable to be removed'
           @response[:errorData][target.basename.to_s] = "Remove failed"
