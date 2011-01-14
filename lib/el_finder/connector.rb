@@ -457,11 +457,17 @@ module ElFinder
         )
 
         if pathname.readable? && response[:mime] =~ /image/ && !image_handler.nil?
-          @response[:tmb] = true if @options[:thumbs] && !thumbnail_for(pathname).exist?
           response.merge!(
             :resize => true,
             :dim => image_handler.size(pathname)
           )
+          if @options[:thumbs] 
+            if (thumbnail = thumbnail_for(pathname)).exist?
+              response.merge!( :tmb => (@options[:url] + '/' + thumbnail.path.to_s))
+            else
+              @response[:tmb] = true 
+            end
+          end
         end
 
       end

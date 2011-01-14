@@ -104,6 +104,22 @@ class TestElFinderThumbs < Test::Unit::TestCase
 
     assert !File.exist?(pjkh_thumb)
     assert !File.exist?(elfinder_thumb)
+  end
+
+  def test_open_response_contains_tmb_details_if_thumbs_exist
+    @elfinder.options = { :thumbs => true }
+    h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
+
+    r[:cdc].select{|e| e[:mime] =~ /image/}.each do |img|
+      assert_nil img[:tmb]
+    end
+
+    h, r = @elfinder.run(:cmd => 'tmb', :current => '')
+    h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
+
+    r[:cdc].select{|e| e[:mime] =~ /image/}.each do |img|
+      assert_not_nil img[:tmb]
+    end
 
   end
 
