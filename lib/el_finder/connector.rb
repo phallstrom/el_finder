@@ -1,3 +1,7 @@
+#
+# http://elrte.org/redmine/projects/elfinder/wiki/Client-Server_Protocol_EN
+#
+
 require 'base64'
 
 module ElFinder
@@ -17,7 +21,11 @@ module ElFinder
       :extractors => {},
       :home => 'Home',
       :default_perms => {:read => true, :write => true, :rm => true},
-      :perms => []
+      :perms => [],
+      :thumbs => false,
+      :thumbs_directory => '.thumbs',
+      :thumbs_size => 48,
+      :thumbs_at_once => 5,
     }
 
     #
@@ -39,17 +47,23 @@ module ElFinder
     #
     def run(params = {})
       @params = params.dup
+      @headers = {}
+      @response = {}
       @response[:errorData] = {}
 
       if VALID_COMMANDS.include?(@params[:cmd])
+
+        if @options[:thumbs]
+          @thumb_directory = @root + @options[:thumbs_directory]
+          @thumb_directory.mkdir unless @thumb_directory.exist? 
+          raise(RuntimeError, "Unable to create thumbs directory") unless @thumb_directory.directory?
+        end
 
         @current = @params[:current] ? from_hash(@params[:current]) : nil
         @target = @params[:target] ? from_hash(@params[:target]) : nil
         if params[:targets]
           @targets = @params[:targets].map{|t| from_hash(t)}
         end
-
-
 
         send("_#{@params[:cmd]}")
       else
@@ -99,7 +113,7 @@ module ElFinder
         command_not_implemented
       elsif target.directory?
         @response[:cwd] = cwd_for(target)
-        @response[:cdc] = target.children.map{|e| cdc_for(e)}
+        @response[:cdc] = target.children.map{|e| cdc_for(e)}.compact
 
         if @params[:tree]
           @response[:tree] = {
@@ -120,8 +134,6 @@ module ElFinder
           }
         end
 
-        # FIXME - add 'tmb:true' when necessary
-        
       else
         @response[:error] = "Directory does not exist"
         _open(@root)
@@ -334,7 +346,22 @@ module ElFinder
 
     #
     def _tmb
-      command_not_implemented
+      if image_resize_handler.nil?
+        command_not_implemented
+      else
+        @response[:current] = to_hash(@current)
+        @response[:images] = {}
+        @current.children.select{|e| mime_handler.for(e) =~ /image/}.each_with_index do |img, idx|
+          if idx >= @options[:thumbs_at_once]
+            @response[:tmb] = true
+            break
+          end
+          thumbnail = thumbnail_for(img)
+          image_resize_handler.thumbnail(img, thumbnail, :width => @options[:thumbs_size].to_i, :height => @options[:thumbs_size].to_i)
+          @response[:images][to_hash(img)] = @options[:url] + '/' + thumbnail.path.to_s
+        end
+      end
+
     end # of tmb
 
     #
@@ -359,6 +386,11 @@ module ElFinder
     
     ################################################################################
     private
+
+    #
+    def thumbnail_for(pathname)
+      @thumb_directory + "#{to_hash(pathname)}.png"
+    end
 
     #
     def remove_target(target)
@@ -408,6 +440,7 @@ module ElFinder
     end
 
     def cdc_for(pathname)
+      return nil if @options[:thumbs] && pathname.to_s == @thumb_directory.to_s
       response = {
         :name => pathname.basename.to_s,
         :hash => to_hash(pathname),
@@ -428,6 +461,7 @@ module ElFinder
         )
 
         if pathname.readable? && response[:mime] =~ /image/ && !image_size_handler.nil? && !image_resize_handler.nil?
+          @response[:tmb] = true if @options[:thumbs] && !thumbnail_for(pathname).exist?
           response.merge!(
             :resize => true,
             :dim => image_size_handler.for(pathname)
@@ -449,11 +483,15 @@ module ElFinder
 
     #
     def tree_for(root)
-      root.children.select{ |child| child.directory? }.sort_by{|e| e.basename.to_s.downcase}.map { |child|
-        {:name => child.basename.to_s,
-         :hash => to_hash(child),
-         :dirs => tree_for(child),
-        }.merge(perms_for(child))
+      root.children.
+      select{ |child| child.directory? }.
+      reject{ |child| child.to_s == @thumb_directory.to_s }.
+      sort_by{|e| e.basename.to_s.downcase}.
+      map { |child|
+          {:name => child.basename.to_s,
+           :hash => to_hash(child),
+           :dirs => tree_for(child),
+          }.merge(perms_for(child))
       }
     end # of tree_for
 
