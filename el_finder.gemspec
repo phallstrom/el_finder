@@ -20,5 +20,6 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_dependency('image_size', '>= 1.0.0')
+  s.requirements << 'ImageMagick'
 
 end
