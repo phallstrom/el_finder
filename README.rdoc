@@ -14,7 +14,7 @@ open-source file manager for web, written in JavaScript using jQuery UI.
 
 == Requirements:
 
-The gem, by default, relies upon the 'image_size' ruby gem and ImageMagick's 'mogrify' command.
+The gem, by default, relies upon the 'image_size' ruby gem and ImageMagick's 'mogrify' and 'convert' commands.
 These requirements can be changed by implementing custom methods for determining image size
 and resizing of an image.
 

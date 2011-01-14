@@ -234,7 +234,7 @@ class TestElFinder < Test::Unit::TestCase
     file = r[:cdc].find{|e| e[:name] == 'pjkh.png'}
     h, r = @elfinder.run(:cmd => 'resize', :target => file[:hash], :current => r[:cwd][:hash], :width => '50', :height => '25')
     assert File.exist?(File.join(@vroot, 'pjkh.png'))
-    assert_equal '50x25', ElFinder::ImageSize.for(File.join(@vroot, 'pjkh.png')).to_s
+    assert_equal '50x25', ElFinder::Image.size(File.join(@vroot, 'pjkh.png')).to_s
   end
 
   ################################################################################

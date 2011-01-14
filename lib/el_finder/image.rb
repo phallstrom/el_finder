@@ -1,8 +1,17 @@
+require 'rubygems'
 require 'shellwords'
+require 'image_size'
 
 module ElFinder
 
-  class ImageResize
+  class Image
+
+    def self.size(pathname)
+      return nil unless File.exist?(pathname)
+      s = ::ImageSize.new(File.open(pathname)).size.to_s
+      s = nil if s.empty?
+      return s
+    end
 
     def self.resize(pathname, options = {})
       return nil unless File.exist?(pathname)
@@ -14,6 +23,6 @@ module ElFinder
       system( ::Shellwords.join(['convert', '-resize', "#{options[:width]}x#{options[:height]}!", src.to_s, dst.to_s]) ) 
     end # of self.resize
 
-  end # of class ImageSize
+  end # of class Image
 
 end # of module ElFinder

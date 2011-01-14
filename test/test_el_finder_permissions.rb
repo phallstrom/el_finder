@@ -341,7 +341,7 @@ class TestElFinder < Test::Unit::TestCase
     h, r = @elfinder.run(:cmd => 'resize', :target => file[:hash], :current => r[:cwd][:hash], :width => '50', :height => '25')
     assert_match(/access denied/i, r[:error])
     assert File.exist?(File.join(@vroot, 'pjkh.png'))
-    assert_equal '100x100', ElFinder::ImageSize.for(File.join(@vroot, 'pjkh.png')).to_s
+    assert_equal '100x100', ElFinder::Image.size(File.join(@vroot, 'pjkh.png')).to_s
   end
 
   def test_resize_permissions_read
@@ -355,7 +355,7 @@ class TestElFinder < Test::Unit::TestCase
     h, r = @elfinder.run(:cmd => 'resize', :target => file[:hash], :current => r[:cwd][:hash], :width => '50', :height => '25')
     assert_match(/access denied/i, r[:error])
     assert File.exist?(File.join(@vroot, 'pjkh.png'))
-    assert_equal '100x100', ElFinder::ImageSize.for(File.join(@vroot, 'pjkh.png')).to_s
+    assert_equal '100x100', ElFinder::Image.size(File.join(@vroot, 'pjkh.png')).to_s
   end
 
 

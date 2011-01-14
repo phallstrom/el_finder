@@ -11,8 +11,7 @@ module ElFinder
 
     DEFAULT_OPTIONS = {
       :mime_handler => ElFinder::MimeType,
-      :image_size_handler => ElFinder::ImageSize,
-      :image_resize_handler => ElFinder::ImageResize,
+      :image_handler => ElFinder::Image,
       :original_filename_method => lambda {|file| file.original_filename},
       :disabled_commands => [],
       :show_dot_files => true,
@@ -35,8 +34,7 @@ module ElFinder
       raise(RuntimeError, "Missing required :url option") unless @options.key?(:url) 
       raise(RuntimeError, "Missing required :root option") unless @options.key?(:root) 
       raise(RuntimeError, "Mime Handler is invalid") unless mime_handler.respond_to?(:for)
-      raise(RuntimeError, "Image Size Handler is invalid") unless image_size_handler.nil? || image_size_handler.respond_to?(:for)
-      raise(RuntimeError, "Image Resize Handler is invalid") unless image_resize_handler.nil? || image_resize_handler.respond_to?(:resize)
+      raise(RuntimeError, "Image Handler is invalid") unless image_handler.nil? || ([:size, :resize, :thumbnail].all?{|m| image_handler.respond_to?(m)})
 
       @root = ElFinder::Pathname.new(options[:root])
 
@@ -346,7 +344,7 @@ module ElFinder
 
     #
     def _tmb
-      if image_resize_handler.nil?
+      if image_handler.nil?
         command_not_implemented
       else
         @response[:current] = to_hash(@current)
@@ -357,7 +355,7 @@ module ElFinder
             break
           end
           thumbnail = thumbnail_for(img)
-          image_resize_handler.thumbnail(img, thumbnail, :width => @options[:thumbs_size].to_i, :height => @options[:thumbs_size].to_i)
+          image_handler.thumbnail(img, thumbnail, :width => @options[:thumbs_size].to_i, :height => @options[:thumbs_size].to_i)
           @response[:images][to_hash(img)] = @options[:url] + '/' + thumbnail.path.to_s
         end
       end
@@ -366,13 +364,13 @@ module ElFinder
 
     #
     def _resize
-      if image_resize_handler.nil?
+      if image_handler.nil?
         command_not_implemented
       else
         if @target.file?
           perms = perms_for(@target)
           if perms[:read] == true && perms[:write] == true
-            image_resize_handler.resize(@target, :width => @params[:width].to_i, :height => @params[:height].to_i)
+            image_handler.resize(@target, :width => @params[:width].to_i, :height => @params[:height].to_i)
             @response[:select] = [to_hash(@target)]
             _open(@current)
           else
@@ -421,13 +419,8 @@ module ElFinder
     end
 
     #
-    def image_size_handler
-      @options[:image_size_handler]
-    end
-
-    #
-    def image_resize_handler
-      @options[:image_resize_handler]
+    def image_handler
+      @options[:image_handler]
     end
 
     # 
@@ -463,11 +456,11 @@ module ElFinder
           :url => (@options[:url] + '/' + pathname.path.to_s)
         )
 
-        if pathname.readable? && response[:mime] =~ /image/ && !image_size_handler.nil? && !image_resize_handler.nil?
+        if pathname.readable? && response[:mime] =~ /image/ && !image_handler.nil?
           @response[:tmb] = true if @options[:thumbs] && !thumbnail_for(pathname).exist?
           response.merge!(
             :resize => true,
-            :dim => image_size_handler.for(pathname)
+            :dim => image_handler.size(pathname)
           )
         end
 
