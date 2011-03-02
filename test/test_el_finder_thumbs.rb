@@ -72,7 +72,7 @@ class TestElFinderThumbs < Test::Unit::TestCase
     h, r = @elfinder.run(:cmd => 'tmb', :current => '')
 
     elfinder_hash = @elfinder.to_hash(ElFinder::Pathname.new(@vroot, 'elfinder.png'))
-    pjkh_hash = @elfinder.to_hash(ElFinder::Pathname.new(@vroot, 'elfinder.png'))
+    pjkh_hash = @elfinder.to_hash(ElFinder::Pathname.new(@vroot, 'pjkh.png'))
 
     assert_equal 2, r[:images].size
     assert_equal "/elfinder/.thumbs/#{elfinder_hash}.png", r[:images][elfinder_hash]
@@ -85,7 +85,7 @@ class TestElFinderThumbs < Test::Unit::TestCase
     h, r = @elfinder.run(:cmd => 'tmb', :current => '')
 
     elfinder_hash = @elfinder.to_hash(ElFinder::Pathname.new(@vroot, 'elfinder.png'))
-    pjkh_hash = @elfinder.to_hash(ElFinder::Pathname.new(@vroot, 'elfinder.png'))
+    pjkh_hash = @elfinder.to_hash(ElFinder::Pathname.new(@vroot, 'pjkh.png'))
 
     assert_equal true, r[:tmb]
     assert_equal 1, r[:images].size
@@ -93,7 +93,7 @@ class TestElFinderThumbs < Test::Unit::TestCase
 
   def test_thumbnail_removed_when_image_removed
     @elfinder.options = { :thumbs => true }
-    pjkh_thumb = File.join(@vroot, '.thumbs', "#{@elfinder.to_hash(ElFinder::Pathname.new(@vroot, 'elfinder.png'))}.png")
+    pjkh_thumb = File.join(@vroot, '.thumbs', "#{@elfinder.to_hash(ElFinder::Pathname.new(@vroot, 'pjkh.png'))}.png")
     elfinder_thumb = File.join(@vroot, '.thumbs', "#{@elfinder.to_hash(ElFinder::Pathname.new(@vroot, 'elfinder.png'))}.png")
     Dir.mkdir(File.join(@vroot, '.thumbs'))
     FileUtils.touch pjkh_thumb

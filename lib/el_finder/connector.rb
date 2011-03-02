@@ -75,12 +75,12 @@ module ElFinder
 
     #
     def to_hash(pathname)
-      Base64.encode64(pathname.path.to_s).chomp
+      Base64.encode64(pathname.path.to_s).chomp.tr("\n", "_")
     end # of to_hash
 
     #
     def from_hash(hash)
-      pathname = @root + Base64.decode64(hash)
+      pathname = @root + Base64.decode64(hash.tr("_", "\n"))
     end # of from_hash
 
     #
@@ -349,14 +349,18 @@ module ElFinder
       else
         @response[:current] = to_hash(@current)
         @response[:images] = {}
-        @current.children.select{|e| mime_handler.for(e) =~ /image/}.each_with_index do |img, idx|
+        idx = 0
+        @current.children.select{|e| mime_handler.for(e) =~ /image/}.each do |img|
           if idx >= @options[:thumbs_at_once]
             @response[:tmb] = true
             break
           end
           thumbnail = thumbnail_for(img)
-          image_handler.thumbnail(img, thumbnail, :width => @options[:thumbs_size].to_i, :height => @options[:thumbs_size].to_i)
-          @response[:images][to_hash(img)] = @options[:url] + '/' + thumbnail.path.to_s
+          unless thumbnail.file?
+            image_handler.thumbnail(img, thumbnail, :width => @options[:thumbs_size].to_i, :height => @options[:thumbs_size].to_i)
+            @response[:images][to_hash(img)] = @options[:url] + '/' + thumbnail.path.to_s
+            idx += 1
+          end
         end
       end
 
