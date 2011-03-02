@@ -14,7 +14,7 @@ module ElFinder
       :image_handler => ElFinder::Image,
       :original_filename_method => lambda {|file| file.original_filename},
       :disabled_commands => [],
-      :show_dot_files => true,
+      :allow_dot_files => true,
       :upload_max_size => '50M',
       :archivers => {},
       :extractors => {},
@@ -124,7 +124,7 @@ module ElFinder
         if @params[:init]
           @response[:disabled] = @options[:disabled_commands]
           @response[:params] = {
-            :dotFiles => @options[:show_dot_files],
+            :dotFiles => @options[:allow_dot_files],
             :uplMaxSize => @options[:upload_max_size],
             :archives => @options[:archivers].keys,
             :extract => @options[:extractors].keys,
