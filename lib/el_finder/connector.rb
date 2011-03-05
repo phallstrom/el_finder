@@ -16,6 +16,7 @@ module ElFinder
       :disabled_commands => [],
       :allow_dot_files => true,
       :upload_max_size => '50M',
+      :upload_file_mode => 0644,
       :archivers => {},
       :extractors => {},
       :home => 'Home',
@@ -210,6 +211,7 @@ module ElFinder
       @params[:upload].to_a.each do |file|
         dst = @current + @options[:original_filename_method].call(file)
         FileUtils.mv(file.path, dst.fullpath)
+        FileUtils.chmod @options[:upload_file_mode], dst
         select << to_hash(dst)
       end
       @response[:select] = select
