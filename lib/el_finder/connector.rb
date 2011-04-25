@@ -112,7 +112,7 @@ module ElFinder
         command_not_implemented
       elsif target.directory?
         @response[:cwd] = cwd_for(target)
-        @response[:cdc] = target.children.map{|e| cdc_for(e)}.compact
+        @response[:cdc] = target.children.sort_by{|e| e.basename.to_s.downcase}.map{|e| cdc_for(e)}.compact
 
         if @params[:tree]
           @response[:tree] = {

@@ -69,6 +69,12 @@ class TestElFinder < Test::Unit::TestCase
     end
   end
 
+  def test_cdc_is_sorted
+    h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
+    assert_equal 'elfinder.png', r[:cdc].first[:name]
+    assert_equal 'sample.zip', r[:cdc].last[:name]
+  end
+
   def test_cwd_name_for_root
     h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
     assert r[:cwd][:name], 'Home'
