@@ -409,7 +409,7 @@ module ElFinder
       else
         begin
           target.unlink
-          if (thumbnail = thumbnail_for(target)).file?
+          if @options[:thumbs] and (thumbnail = thumbnail_for(target)).file?
             thumbnail.unlink
           end
         rescue
