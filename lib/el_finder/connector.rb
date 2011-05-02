@@ -409,7 +409,7 @@ module ElFinder
       else
         begin
           target.unlink
-          if (thumbnail = thumbnail_for(target)).file?
+          if @options[:thumbs] && (thumbnail = thumbnail_for(target)).file?
             thumbnail.unlink
           end
         rescue
@@ -493,7 +493,7 @@ module ElFinder
     def tree_for(root)
       root.children.
       select{ |child| child.directory? }.
-      reject{ |child| child.to_s == @thumb_directory.to_s }.
+      reject{ |child| @options[:thumbs] && child.to_s == @thumb_directory.to_s }.
       sort_by{|e| e.basename.to_s.downcase}.
       map { |child|
           {:name => child.basename.to_s,

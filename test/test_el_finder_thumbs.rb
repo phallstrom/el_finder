@@ -106,6 +106,20 @@ class TestElFinderThumbs < Test::Unit::TestCase
     assert !File.exist?(elfinder_thumb)
   end
 
+  def test_thumbnail_removal_not_attempted_when_thumbs_not_enabled_and_image_removed
+    @elfinder.options = { :thumbs => false }
+    pjkh_thumb = File.join(@vroot, '.thumbs', "#{@elfinder.to_hash(ElFinder::Pathname.new(@vroot, 'pjkh.png'))}.png")
+    elfinder_thumb = File.join(@vroot, '.thumbs', "#{@elfinder.to_hash(ElFinder::Pathname.new(@vroot, 'elfinder.png'))}.png")
+    Dir.mkdir(File.join(@vroot, '.thumbs'))
+    FileUtils.touch pjkh_thumb
+    FileUtils.touch elfinder_thumb
+
+    h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
+    h, r = @elfinder.run(:cmd => 'rm', :targets => r[:cdc].select{|e| e[:mime] =~ /image/}.map{|e| e[:hash]})
+
+    assert_nil r[:error]
+  end
+
   def test_open_response_contains_tmb_details_if_thumbs_exist
     @elfinder.options = { :thumbs => true }
     h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
