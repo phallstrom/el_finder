@@ -491,8 +491,7 @@ module ElFinder
 
     #
     def tree_for(root)
-      root.children.
-      select{ |child| child.directory? }.
+      root.child_directories.
       reject{ |child| @options[:thumbs] && child.to_s == @thumb_directory.to_s }.
       sort_by{|e| e.basename.to_s.downcase}.
       map { |child|
