@@ -99,9 +99,9 @@ module ElFinder
     end # of to_s
     alias_method :to_str, :to_s
 
-    # We cheat and use the ::Pathname to keep this speedy.
+    # 
     def child_directories(with_directory=true)
-      @path.children(with_directory).select{ |child| child.directory? }.map{|e| self.class.new(@root, e)}
+      realpath.children(with_directory).select{ |child| child.directory? }.map{|e| self.class.new(@root, e)}
     end
 
     #
