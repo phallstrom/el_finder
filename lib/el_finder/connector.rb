@@ -88,6 +88,12 @@ module ElFinder
       hash += '='  if len == 3
 
       pathname = @root + Base64.urlsafe_decode64(hash)
+    rescue ArgumentError => e
+      if e.message == 'invalid base64'
+        nil
+      else
+        raise
+      end
     end # of from_hash
 
     #
@@ -321,7 +327,7 @@ module ElFinder
 
     #
     def _extract
-      @response[:error] = 'Invalid Parameters' and return unless @target.file? && @current.directory?
+      @response[:error] = 'Invalid Parameters' and return if @target.nil? || @current.nil? || !(@target.file? && @current.directory?)
       @response[:error] = 'Access Denied' and return unless perms_for(@target)[:read] == true && perms_for(@current)[:write] == true
       @response[:error] = 'No extractor available for this file type' and return if (extractor = @options[:extractors][mime_handler.for(@target)]).nil?
       cmd = ['cd', @current.to_s.shellescape, '&&', extractor.map(&:shellescape), @target.basename.to_s.shellescape].flatten.join(' ')
