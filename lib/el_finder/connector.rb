@@ -59,7 +59,7 @@ module ElFinder
         end
 
         @current = @params[:current] ? from_hash(@params[:current]) : nil
-        @target = @params[:target] ? from_hash(@params[:target]) : nil
+        @target = (@params[:target] and !@params[:target].empty?) ? from_hash(@params[:target]) : nil
         if params[:targets]
           @targets = @params[:targets].map{|t| from_hash(t)}
         end
@@ -76,12 +76,18 @@ module ElFinder
 
     #
     def to_hash(pathname)
-      Base64.encode64(pathname.path.to_s).chomp.tr("\n", "_")
+      # note that '=' are removed
+      Base64.urlsafe_encode64(pathname.path.to_s).chomp.tr("=\n", "")
     end # of to_hash
 
     #
     def from_hash(hash)
-      pathname = @root + Base64.decode64(hash.tr("_", "\n"))
+      # restore missing '='
+      len = hash.length % 4
+      hash += '==' if len == 1 or len == 2
+      hash += '='  if len == 3
+
+      pathname = @root + Base64.urlsafe_decode64(hash)
     end # of from_hash
 
     #
