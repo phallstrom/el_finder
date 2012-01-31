@@ -147,7 +147,7 @@ module ElFinder
 
       else
         @response[:error] = "Directory does not exist"
-        _open(@root)
+        _open(@root) if File.directory?(@root)
       end
 
     end # of open
