@@ -20,7 +20,7 @@ module ElFinder
       :archivers => {},
       :extractors => {},
       :home => 'Home',
-      :default_perms => {:read => true, :write => true, :rm => true},
+      :default_perms => {:read => true, :write => true, :rm => true, :hidden => false },
       :perms => [],
       :thumbs => false,
       :thumbs_directory => '.thumbs',
@@ -124,7 +124,9 @@ module ElFinder
         command_not_implemented
       elsif target.directory?
         @response[:cwd] = cwd_for(target)
-        @response[:cdc] = target.children.sort_by{|e| e.basename.to_s.downcase}.map{|e| cdc_for(e)}.compact
+        @response[:cdc] = target.children.
+          reject{ |child| perms_for(child)[:hidden]}.
+          sort_by{|e| e.basename.to_s.downcase}.map{|e| cdc_for(e)}.compact
 
         if @params[:tree]
           @response[:tree] = {
@@ -341,7 +343,7 @@ module ElFinder
 
     #
     def _archive
-      @response[:error] = 'Invalid Parameters' and return unless !@targets.nil? && @targets.all?{|e| e.exist?} && @current.directory?
+      @response[:error] = 'Invalid Parameters' and return unless !@targets.nil? && @targets.all?{|e| e && e.exist?} && @current && @current.directory?
       @response[:error] = 'Access Denied' and return unless !@targets.nil? && @targets.all?{|e| perms_for(e)[:read]} && perms_for(@current)[:write] == true
       @response[:error] = 'No archiver available for this file type' and return if (archiver = @options[:archivers][@params[:type]]).nil?
       extension = archiver.shift
@@ -504,7 +506,9 @@ module ElFinder
     #
     def tree_for(root)
       root.child_directories.
-      reject{ |child| @options[:thumbs] && child.to_s == @thumb_directory.to_s }.
+      reject{ |child| 
+        ( @options[:thumbs] && child.to_s == @thumb_directory.to_s ) || perms_for(child)[:hidden]
+      }.
       sort_by{|e| e.basename.to_s.downcase}.
       map { |child|
           {:name => child.basename.to_s,
@@ -531,13 +535,22 @@ module ElFinder
       response[:rm] &&= specific_perm_for(pathname, :rm)
       response[:rm] &&= @options[:default_perms][:rm]
 
+      response[:hidden] = false
+      response[:hidden] ||= specific_perm_for(pathname, :hidden)
+      response[:hidden] ||= @options[:default_perms][:hidden]
+
       response
     end # of perms_for
 
     #
     def specific_perm_for(pathname, perm)
       pathname = pathname.path if pathname.is_a?(ElFinder::Pathname)
-      @options[:perms].select{ |k,v| pathname.to_s.send((k.is_a?(String) ? :== : :match), k) }.none?{|e| e.last[perm] == false}
+      matches = @options[:perms].select{ |k,v| pathname.to_s.send((k.is_a?(String) ? :== : :match), k) }
+      if perm == :hidden
+        matches.one?{|e| e.last[perm] }
+      else
+        matches.none?{|e| e.last[perm] == false}
+      end
     end # of specific_perm_for
     
     #
