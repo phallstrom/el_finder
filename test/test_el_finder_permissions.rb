@@ -358,5 +358,24 @@ class TestElFinder < Test::Unit::TestCase
     assert_equal '100x100', ElFinder::Image.size(File.join(@vroot, 'pjkh.png')).to_s
   end
 
+  
+  def test_hidden_permissions
+    @elfinder.options = {
+      :perms => {
+        'README.txt' => { :hidden => true }
+      }
+    }
+    h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
+    assert_nil r[:cdc].find{|e| e[:name] == 'README.txt'}
+
+    @elfinder.options = {
+      :perms => {
+        'README.txt' => { :hidden => false }
+      }
+    }
+    h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
+    assert_not_nil r[:cdc].find{|e| e[:name] == 'README.txt'}
+  end
+
 
 end
