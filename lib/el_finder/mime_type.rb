@@ -1,7 +1,9 @@
 module ElFinder
 
+  # Represents default MIME types recognizer.
   class MimeType
 
+    # File extension to mime type mapping.
     TYPES = {
       'ai'    => 'application/postscript',
       'eps'   => 'application/postscript',
@@ -67,7 +69,10 @@ module ElFinder
       'flv'   => 'video/x-flv',
       'mkv'   => 'video/x-matroska'
     }
-		
+
+    # Gets MIME type fort specified path.
+    # @param [::Pathname, String] pathname Path to recognize its MIME type.
+    # @return [String] MIME type if known; 'unknown/unknown' otherwise.
     def self.for(pathname)
       pathname = ::Pathname.new(pathname) if pathname.is_a?(String)
       TYPES[pathname.extname.downcase[1..-1]] || 'unknown/unknown'
