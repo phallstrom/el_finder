@@ -5,14 +5,20 @@
 require 'base64'
 
 module ElFinder
+
+  # Represents ElFinder connector on Rails side.
   class Connector
-    
+
+    # Valid commands to run.
+    # @see #run
     VALID_COMMANDS = %w[archive duplicate edit extract mkdir mkfile open paste ping read rename resize rm tmb upload]
 
+    # Default options for instances.
+    # @see #initialize
     DEFAULT_OPTIONS = {
       :mime_handler => ElFinder::MimeType,
       :image_handler => ElFinder::Image,
-      :original_filename_method => lambda {|file| file.original_filename},
+      :original_filename_method => lambda { |file| file.original_filename },
       :disabled_commands => [],
       :allow_dot_files => true,
       :upload_max_size => '50M',
@@ -20,7 +26,7 @@ module ElFinder
       :archivers => {},
       :extractors => {},
       :home => 'Home',
-      :default_perms => {:read => true, :write => true, :rm => true, :hidden => false },
+      :default_perms => { :read => true, :write => true, :rm => true, :hidden => false },
       :perms => [],
       :thumbs => false,
       :thumbs_directory => '.thumbs',
@@ -28,14 +34,18 @@ module ElFinder
       :thumbs_at_once => 5,
     }
 
-    #
-    def initialize(options = {})
+    # Initializes new instance.
+    # @param [Hash] options Instance options. :url and :root options are required.
+    # @option options [String] :url Entry point of ElFinder router.
+    # @option options [String] :root Root directory of ElFinder directory structure.
+    # @see DEFAULT_OPTIONS
+    def initialize(options)
       @options = DEFAULT_OPTIONS.merge(options)
 
-      raise(RuntimeError, "Missing required :url option") unless @options.key?(:url) 
-      raise(RuntimeError, "Missing required :root option") unless @options.key?(:root) 
-      raise(RuntimeError, "Mime Handler is invalid") unless mime_handler.respond_to?(:for)
-      raise(RuntimeError, "Image Handler is invalid") unless image_handler.nil? || ([:size, :resize, :thumbnail].all?{|m| image_handler.respond_to?(m)})
+      raise(ArgumentError, "Missing required :url option") unless @options.key?(:url) 
+      raise(ArgumentError, "Missing required :root option") unless @options.key?(:root) 
+      raise(ArgumentError, "Mime Handler is invalid") unless mime_handler.respond_to?(:for)
+      raise(ArgumentError, "Image Handler is invalid") unless image_handler.nil? || ([:size, :resize, :thumbnail].all?{|m| image_handler.respond_to?(m)})
 
       @root = ElFinder::Pathname.new(options[:root])
 
@@ -43,8 +53,11 @@ module ElFinder
       @response = {}
     end # of initialize
 
-    #
-    def run(params = {})
+    # Runs request-response cycle.
+    # @param [Hash] params Request parameters. :cmd option is required.
+    # @option params [String] :cmd Command to be performed.
+    # @see VALID_COMMANDS
+    def run(params)
       @params = params.dup
       @headers = {}
       @response = {}
@@ -89,19 +102,22 @@ module ElFinder
 
       pathname = @root + Base64.urlsafe_decode64(hash)
     rescue ArgumentError => e
-      if e.message == 'invalid base64'
-        nil
-      else
+      if e.message != 'invalid base64'
         raise
       end
+      nil
     end # of from_hash
 
-    #
-    def options=(opts = {})
-      opts.each_pair do |k,v|
+    # @!attribute [w] options
+    # Options setter.
+    # @param value [Hash] Options to be merged with instance ones.
+    # @return [Hash] Updated options.
+    def options=(value = {})
+      value.each_pair do |k, v|
         @options[k.to_sym] = v
       end
-    end
+      @options
+    end # of options=
 
     ################################################################################
     protected
@@ -433,7 +449,6 @@ module ElFinder
       end
     end
 
-    #
     def mime_handler
       @options[:mime_handler]
     end

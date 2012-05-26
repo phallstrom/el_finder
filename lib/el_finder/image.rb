@@ -4,6 +4,8 @@ require 'image_size'
 
 module ElFinder
 
+  # Represents default image handler.
+  # It uses *mogrify* to resize images and *convert* to create thumbnails.
   class Image
 
     def self.size(pathname)
