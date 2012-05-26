@@ -7,25 +7,25 @@ class TestElFinder < Test::Unit::TestCase
   ################################################################################
 
   def test_should_fail_initialization_if_required_options_not_passed
-    assert_raise RuntimeError do
+    assert_raise ArgumentError do
       ElFinder::Connector.new()
     end
   end
 
   def test_should_fail_initialization_if_no_root_specified
-    assert_raise RuntimeError do
+    assert_raise ArgumentError do
       ElFinder::Connector.new({:url => '/elfinder'})
     end
   end
 
   def test_should_fail_initialization_if_no_url_specified
-    assert_raise RuntimeError do
+    assert_raise ArgumentError do
       ElFinder::Connector.new({:root => '/tmp/elfinder'})
     end
   end
 
   def test_should_fail_initialization_if_mime_handler_is_invalid
-    assert_raise RuntimeError do
+    assert_raise ArgumentError do
       ElFinder::Connector.new({:root => '/tmp/elfinder', :url => '/elfinder', :mime_handler => Object})
     end
   end
