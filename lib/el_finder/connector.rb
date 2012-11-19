@@ -18,7 +18,7 @@ module ElFinder
     DEFAULT_OPTIONS = {
       :mime_handler => ElFinder::MimeType,
       :image_handler => ElFinder::Image,
-      :original_filename_method => lambda { |file| file.original_filename },
+      :original_filename_method => lambda { |file| file.original_filename.force_encoding('utf-8') },
       :disabled_commands => [],
       :allow_dot_files => true,
       :upload_max_size => '50M',
