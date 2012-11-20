@@ -236,13 +236,17 @@ module ElFinder
         @response[:error] = 'Access Denied'
         return
       end
-
       select = []
       @params[:upload].to_a.each do |file|
-        dst = @current + @options[:original_filename_method].call(file)
-        FileUtils.mv(file.path, dst.fullpath)
-        FileUtils.chmod @options[:upload_file_mode], dst
-        select << to_hash(dst)
+        unless file.tempfile.size > @options[:upload_max_size].to_i*1024*1024
+          dst = @current + @options[:original_filename_method].call(file)
+          # binding.pry
+          FileUtils.mv(file.tempfile.path, dst.fullpath)
+          FileUtils.chmod @options[:upload_file_mode], dst
+          select << to_hash(dst)
+        else
+          @response[:error] = ['errFileMaxSize']
+        end
       end
       @response[:select] = select
       _open(@current)
