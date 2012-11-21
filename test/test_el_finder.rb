@@ -141,6 +141,19 @@ class TestElFinder < Test::Unit::TestCase
     assert_not_nil r[:select]
   end
 
+  def test_upload_too_big
+    @elfinder.options = {:upload_max_size => 5}
+    h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
+    uploads = []
+    uploads << File.open(File.join(@vroot, 'foo/philip.txt'))
+    uploads << File.open(File.join(@vroot, 'foo/sam.txt'))
+    h, r = @elfinder.run(:cmd => 'upload', :upload => uploads, :current => r[:cwd][:hash])
+    assert !File.exist?(File.join(@vroot, 'philip.txt'))
+    assert File.exist?(File.join(@vroot, 'sam.txt'))
+    assert_not_nil r[:select]
+    assert_match(/some files were not uploaded/i, r[:error])
+  end
+
   def test_ping
     h, r = @elfinder.run(:cmd => 'ping')
     assert r.empty?

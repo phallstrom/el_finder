@@ -238,17 +238,17 @@ module ElFinder
       end
       select = []
       @params[:upload].to_a.each do |file|
-        unless file.tempfile.size > @options[:upload_max_size].to_i*1024*1024
+        if upload_max_size_in_bytes > 0 && file.size > upload_max_size_in_bytes
+          @response[:error] ||= "Some files were not uploaded"
+          @response[:errorData][@options[:original_filename_method].call(file)] = 'File exceeds the maximum allowed filesize'
+        else
           dst = @current + @options[:original_filename_method].call(file)
-          # binding.pry
-          FileUtils.mv(file.tempfile.path, dst.fullpath)
+          FileUtils.mv(file.path, dst.fullpath)
           FileUtils.chmod @options[:upload_file_mode], dst
           select << to_hash(dst)
-        else
-          @response[:error] = ['errFileMaxSize']
         end
       end
-      @response[:select] = select
+      @response[:select] = select unless select.empty?
       _open(@current)
     end # of upload
 
@@ -424,6 +424,24 @@ module ElFinder
     
     ################################################################################
     private
+
+    #
+    def upload_max_size_in_bytes
+      bytes = @options[:upload_max_size]
+      if bytes.is_a?(String) && bytes.strip =~ /(\d+)([KMG]?)/
+        bytes = $1.to_i
+        unit = $2
+        case unit
+          when 'K'
+            bytes *= 1024
+          when 'M'
+            bytes *= 1024 * 1024
+          when 'G'
+            bytes *= 1024 * 1024 * 1024
+        end
+      end
+      bytes.to_i
+    end
 
     #
     def thumbnail_for(pathname)
