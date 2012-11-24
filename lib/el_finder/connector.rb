@@ -244,7 +244,7 @@ module ElFinder
         else
           dst = @current + @options[:original_filename_method].call(file)
           src = file.respond_to?(:tempfile) ? file.tempfile.path : file.path
-          FileUtils.mv(file.path, dst.fullpath)
+          FileUtils.mv(src, dst.fullpath)
           FileUtils.chmod @options[:upload_file_mode], dst
           select << to_hash(dst)
         end
