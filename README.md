@@ -7,10 +7,10 @@
 Ruby library to provide server side functionality for elFinder.  elFinder is an
 open-source file manager for web, written in JavaScript using jQuery UI.
 
-## Todo:
+## Note regarding 2.x API:
 
-* Document library.
-* Document how to implement custom image size/resize methods.
+FYI, I'm working on a pure 2.x API implementation.  Nothing to release yet, and the holidays are in the way,
+but wanted to "get the word out."
 
 ## Requirements:
 
