@@ -243,7 +243,13 @@ module ElFinder
           @response[:errorData][@options[:original_filename_method].call(file)] = 'File exceeds the maximum allowed filesize'
         else
           dst = @current + @options[:original_filename_method].call(file)
-          src = file.respond_to?(:tempfile) ? file.tempfile.path : file.path
+          if file.respond_to?(:tempfile)
+            file.tempfile.close
+            src = file.tempfile.path
+          else
+            file.close
+            src = file.path
+          end
           FileUtils.mv(src, dst.fullpath)
           FileUtils.chmod @options[:upload_file_mode], dst
           select << to_hash(dst)
