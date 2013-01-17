@@ -2,6 +2,14 @@
 # http://elrte.org/redmine/projects/elfinder/wiki/Client-Server_Protocol_EN
 #
 
+if RUBY_VERSION < '1.9'
+  class String
+    def force_encoding(enc)
+      self
+    end
+  end
+end
+
 require 'base64'
 
 module ElFinder
