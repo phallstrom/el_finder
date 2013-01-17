@@ -2,14 +2,6 @@
 # http://elrte.org/redmine/projects/elfinder/wiki/Client-Server_Protocol_EN
 #
 
-if RUBY_VERSION < '1.9'
-  class String
-    def force_encoding(enc)
-      self
-    end
-  end
-end
-
 require 'base64'
 
 module ElFinder
@@ -26,7 +18,7 @@ module ElFinder
     DEFAULT_OPTIONS = {
       :mime_handler => ElFinder::MimeType,
       :image_handler => ElFinder::Image,
-      :original_filename_method => lambda { |file| file.original_filename.force_encoding('utf-8') },
+      :original_filename_method => lambda { |file| file.original_filename.respond_to?(:force_encoding) ? file.original_filename.force_encoding('utf-8') : file.original_filename },
       :disabled_commands => [],
       :allow_dot_files => true,
       :upload_max_size => '50M',
@@ -108,7 +100,9 @@ module ElFinder
       hash += '==' if len == 1 or len == 2
       hash += '='  if len == 3
 
-      pathname = @root + Base64.urlsafe_decode64(hash).force_encoding('utf-8')
+      decoded_hash = Base64.urlsafe_decode64(hash)
+      decoded_hash = decoded_hash.respond_to?(:force_encoding) ? decoded_hash.force_encoding('utf-8') : decoded_hash
+      pathname = @root + decoded_hash
     rescue ArgumentError => e
       if e.message != 'invalid base64'
         raise
