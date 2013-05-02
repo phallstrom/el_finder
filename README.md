@@ -1,5 +1,7 @@
 ## el_finder
 
+[![Gem Version](https://badge.fury.io/rb/el_finder.png)](http://badge.fury.io/rb/el_finder)
+
 * http://elrte.org/redmine/projects/elfinder
 
 ## Description:
