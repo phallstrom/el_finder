@@ -18,7 +18,7 @@ module ElFinder
     DEFAULT_OPTIONS = {
       :mime_handler => ElFinder::MimeType,
       :image_handler => ElFinder::Image,
-      :original_filename_method => lambda { |file| file.original_filename.force_encoding('utf-8') },
+      :original_filename_method => lambda { |file| file.original_filename.respond_to?(:force_encoding) ? file.original_filename.force_encoding('utf-8') : file.original_filename },
       :disabled_commands => [],
       :allow_dot_files => true,
       :upload_max_size => '50M',
@@ -100,7 +100,9 @@ module ElFinder
       hash += '==' if len == 1 or len == 2
       hash += '='  if len == 3
 
-      pathname = @root + Base64.urlsafe_decode64(hash).force_encoding('utf-8')
+      decoded_hash = Base64.urlsafe_decode64(hash)
+      decoded_hash = decoded_hash.respond_to?(:force_encoding) ? decoded_hash.force_encoding('utf-8') : decoded_hash
+      pathname = @root + decoded_hash
     rescue ArgumentError => e
       if e.message != 'invalid base64'
         raise
@@ -238,18 +240,18 @@ module ElFinder
       end
       select = []
       @params[:upload].to_a.each do |file|
-        if upload_max_size_in_bytes > 0 && file.size > upload_max_size_in_bytes
+        if file.respond_to?(:tempfile)
+          the_file = file.tempfile
+        else
+          the_file = file
+        end
+        if upload_max_size_in_bytes > 0 && File.size(the_file.path) > upload_max_size_in_bytes
           @response[:error] ||= "Some files were not uploaded"
           @response[:errorData][@options[:original_filename_method].call(file)] = 'File exceeds the maximum allowed filesize'
         else
           dst = @current + @options[:original_filename_method].call(file)
-          if file.respond_to?(:tempfile)
-            file.tempfile.close
-            src = file.tempfile.path
-          else
-            file.close
-            src = file.path
-          end
+          the_file.close
+          src = the_file.path
           FileUtils.mv(src, dst.fullpath)
           FileUtils.chmod @options[:upload_file_mode], dst
           select << to_hash(dst)
