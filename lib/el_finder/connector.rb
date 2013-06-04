@@ -42,8 +42,8 @@ module ElFinder
     def initialize(options)
       @options = DEFAULT_OPTIONS.merge(options)
 
-      raise(ArgumentError, "Missing required :url option") unless @options.key?(:url) 
-      raise(ArgumentError, "Missing required :root option") unless @options.key?(:root) 
+      raise(ArgumentError, "Missing required :url option") unless @options.key?(:url)
+      raise(ArgumentError, "Missing required :root option") unless @options.key?(:root)
       raise(ArgumentError, "Mime Handler is invalid") unless mime_handler.respond_to?(:for)
       raise(ArgumentError, "Image Handler is invalid") unless image_handler.nil? || ([:size, :resize, :thumbnail].all?{|m| image_handler.respond_to?(m)})
 

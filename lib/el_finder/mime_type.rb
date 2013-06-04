@@ -40,6 +40,7 @@ module ElFinder
       'py'    => 'text/x-python',
       'java'  => 'text/x-java-source',
       'rb'    => 'text/x-ruby',
+      'erb'   => 'text/x-ruby',
       'sh'    => 'text/x-shellscript',
       'pl'    => 'text/x-perl',
       'sql'   => 'text/x-sql',
