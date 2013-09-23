@@ -13,6 +13,8 @@ module ElFinder
       s = ::ImageSize.new(File.open(pathname)).size.to_s
       s = nil if s.empty?
       return s
+    rescue
+      nil
     end
 
     def self.resize(pathname, options = {})
