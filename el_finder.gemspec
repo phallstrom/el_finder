@@ -11,6 +11,7 @@ Gem::Specification.new do |s|
   s.homepage    = "http://github.com/phallstrom/el_finder"
   s.summary     = %q{elFinder server side connector for Ruby.}
   s.description = %q{Ruby library to provide server side functionality for elFinder.  elFinder is an open-source file manager for web, written in JavaScript using jQuery UI.}
+  s.license     = 'MIT'
 
   s.rubyforge_project = "el_finder"
 
