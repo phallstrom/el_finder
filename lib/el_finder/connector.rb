@@ -67,7 +67,7 @@ module ElFinder
 
         if @options[:thumbs]
           @thumb_directory = @root + @options[:thumbs_directory]
-          @thumb_directory.mkdir unless @thumb_directory.exist? 
+          @thumb_directory.mkdir unless @thumb_directory.exist?
           raise(RuntimeError, "Unable to create thumbs directory") unless @thumb_directory.directory?
         end
 
@@ -315,12 +315,12 @@ module ElFinder
 
     #
     def _duplicate
-      if perms_for(@target)[:read] == false 
+      if perms_for(@target)[:read] == false
         @response[:error] = 'Access Denied'
         @response[:errorData][@target.basename.to_s] = 'Unable to read'
         return
       end
-      if perms_for(@target.dirname)[:write] == false 
+      if perms_for(@target.dirname)[:write] == false
         @response[:error] = 'Access Denied'
         @response[:errorData][@target.dirname.to_s] = 'Unable to write'
         return
@@ -336,7 +336,7 @@ module ElFinder
       _open(@current)
     end # of duplicate
 
-    # 
+    #
     def _read
       if perms_for(@target)[:read] == true
         @response[:content] = @target.read
@@ -430,7 +430,7 @@ module ElFinder
         end
       end
     end # of resize
-    
+
     ################################################################################
     private
 
@@ -489,7 +489,7 @@ module ElFinder
       @options[:image_handler]
     end
 
-    # 
+    #
     def cwd_for(pathname)
       {
         :name => pathname.basename.to_s,
@@ -517,7 +517,7 @@ module ElFinder
         )
       elsif pathname.file?
         response.merge!(
-          :size => pathname.size, 
+          :size => pathname.size,
           :mime => mime_handler.for(pathname),
           :url => (@options[:url] + '/' + pathname.path.to_s)
         )
@@ -527,11 +527,11 @@ module ElFinder
             :resize => true,
             :dim => image_handler.size(pathname)
           )
-          if @options[:thumbs] 
+          if @options[:thumbs]
             if (thumbnail = thumbnail_for(pathname)).exist?
               response.merge!( :tmb => (@options[:url] + '/' + thumbnail.path.to_s))
             else
-              @response[:tmb] = true 
+              @response[:tmb] = true
             end
           end
         end
@@ -542,7 +542,7 @@ module ElFinder
         response.merge!(
           :link => to_hash(@root + pathname.readlink), # hash of file to which point link
           :linkTo => (@root + pathname.readlink).relative_to(pathname.dirname.path).to_s, # relative path to
-          :parent => to_hash((@root + pathname.readlink).dirname) # hash of directory in which is linked file 
+          :parent => to_hash((@root + pathname.readlink).dirname) # hash of directory in which is linked file
         )
       end
 
@@ -551,8 +551,8 @@ module ElFinder
 
     #
     def tree_for(root)
-      root.child_directories.
-      reject{ |child| 
+      root.child_directories(false).
+      reject{ |child|
         ( @options[:thumbs] && child.to_s == @thumb_directory.to_s ) || perms_for(child)[:hidden]
       }.
       sort_by{|e| e.basename.to_s.downcase}.
@@ -571,10 +571,10 @@ module ElFinder
 
       response[:read] = pathname.readable? if pathname.exist?
       response[:read] &&= specific_perm_for(pathname, :read)
-      response[:read] &&= @options[:default_perms][:read] 
+      response[:read] &&= @options[:default_perms][:read]
 
       response[:write] = pathname.writable? if pathname.exist?
-      response[:write] &&= specific_perm_for(pathname, :write) 
+      response[:write] &&= specific_perm_for(pathname, :write)
       response[:write] &&= @options[:default_perms][:write]
 
       response[:rm] = !pathname.is_root?
@@ -598,7 +598,7 @@ module ElFinder
         matches.none?{|e| e.last[perm] == false}
       end
     end # of specific_perm_for
-    
+
     #
     def invalid_request
       @response[:error] = "Invalid command '#{@params[:cmd]}'"
