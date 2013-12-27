@@ -11,8 +11,10 @@ open-source file manager for web, written in JavaScript using jQuery UI.
 
 ## Note regarding 2.x API:
 
-FYI, I'm working on a pure 2.x API implementation.  Nothing to release yet, and the holidays are in the way,
+8 months ago I said: FYI, I'm working on a pure 2.x API implementation.  Nothing to release yet, and the holidays are in the way,
 but wanted to "get the word out."
+
+Today: No update :/
 
 ## Requirements:
 
@@ -131,6 +133,11 @@ on where you installed the various js/css files.
 ```
 
 * That's it.  I think.  If not, check out the example rails application at http://github.com/phallstrom/el_finder-rails-example.
+
+## Using with very large file systems
+
+@gudata added a configuration option to not load child directories.  This breaks V1, but if you are using V2
+it should work and speed up the responsiveness quite a bit.  To enable it set `:tree_sub_folders` to `false`.
 
 ## License:
 
