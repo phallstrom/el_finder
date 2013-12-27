@@ -32,6 +32,7 @@ module ElFinder
       :thumbs_directory => '.thumbs',
       :thumbs_size => 48,
       :thumbs_at_once => 5,
+      :tree_sub_folders => true, # list sub/sub folders in the tree
     }
 
     # Initializes new instance.
@@ -551,8 +552,8 @@ module ElFinder
 
     #
     def tree_for(root)
-      root.child_directories.
-      reject{ |child| 
+      root.child_directories(@options[:tree_sub_folders]).
+      reject{ |child|
         ( @options[:thumbs] && child.to_s == @thumb_directory.to_s ) || perms_for(child)[:hidden]
       }.
       sort_by{|e| e.basename.to_s.downcase}.

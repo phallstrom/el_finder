@@ -75,6 +75,27 @@ class TestElFinder < Test::Unit::TestCase
     assert_equal 'sample.zip', r[:cdc].last[:name]
   end
 
+  # by default we list the subfolders in the tree
+  def test_list_nested_items
+    h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '', :tree => true)
+    assert_equal 1, r[:tree][:dirs].count
+  end
+
+  # trun off loading the subfolders in the tree
+  def test_list_root_items
+    elfinder = ElFinder::Connector.new({
+      :root => @vroot,
+      :url => '/elfinder',
+      :tree_sub_folders => false,
+      :original_filename_method => lambda {|file| File.basename(file.path)}
+    })
+
+    h, r = elfinder.run(:cmd => 'open', :init => 'true', :target => '', :tree => true)
+    assert_equal 0, r[:tree][:dirs].count
+  end
+
+
+
   def test_cwd_name_for_root
     h, r = @elfinder.run(:cmd => 'open', :init => 'true', :target => '')
     assert r[:cwd][:name], 'Home'
