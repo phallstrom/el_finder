@@ -161,7 +161,6 @@ module ElFinder
       'file?'      => {:path => 'realpath', :rescue => true                             },
       'ftype'      => {:path => 'realpath',                                             },
       'mkdir'      => {:path => 'fullpath',                  :args => '(*args)'         },
-      'mkdir'      => {:path => 'fullpath',                  :args => '(*args)'         },
       'mtime'      => {:path => 'realpath',                                             },
       'open'       => {:path => 'fullpath',                  :args => '(*args, &block)' },
       'read'       => {:path => 'fullpath',                  :args => '(*args)'         },
