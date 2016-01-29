@@ -10,7 +10,7 @@ module ElFinder
 
     def self.size(pathname)
       return nil unless File.exist?(pathname)
-      s = ::ImageSize.new(File.open(pathname)).size.to_s
+      s = ::ImageSize.path(pathname).size.to_s
       s = nil if s.empty?
       return s
     rescue
