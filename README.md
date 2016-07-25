@@ -2,7 +2,7 @@
 
 [![Gem Version](https://badge.fury.io/rb/el_finder.png)](http://badge.fury.io/rb/el_finder)
 
-* http://elrte.org/redmine/projects/elfinder
+* https://github.com/Studio-42/elFinder
 
 ## Description:
 
@@ -28,7 +28,7 @@ the defaults.
 
 ## Install:
 
-* Install elFinder (http://elrte.org/redmine/projects/elfinder/wiki/Install_EN)
+* Install elFinder
 * Install ImageMagick (http://www.imagemagick.org/)
 * Do whatever is necessary for your Ruby framework to tie it together.
 
