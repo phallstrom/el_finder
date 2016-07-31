@@ -1,3 +1,7 @@
+## NOTICE
+
+I no longer have the time to maintain this (haven't for a long time). If you have an interest in picking this up, let's talk and I can transfer the repository to you.
+
 ## el_finder
 
 [![Gem Version](https://badge.fury.io/rb/el_finder.png)](http://badge.fury.io/rb/el_finder)
