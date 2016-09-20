@@ -403,9 +403,20 @@ module ElFinder
           end
           thumbnail = thumbnail_for(img)
           unless thumbnail.file?
-            image_handler.thumbnail(img, thumbnail, :width => @options[:thumbs_size].to_i, :height => @options[:thumbs_size].to_i)
-            @response[:images][to_hash(img)] = @options[:url] + '/' + thumbnail.path.to_s
-            idx += 1
+            mime = mime_handler.for(img)
+
+            # For animated Gifs (mime-type 'image/gif'), it doesn't create "#{thumbnail}" file, but it creates a series of "#{thumbnail}-x" files, depending
+            # on how many frames that src-gif contains
+            # same thing applies for photoshop files ('image/vnd.adobe.photoshop')
+            # So you need to add [0] to the src to get the first frame.
+            has_frames = true if ["image/gif", "image/vnd.adobe.photoshop"].include?(mime)
+            image_handler.thumbnail(img, thumbnail, :width => @options[:thumbs_size].to_i, :height => @options[:thumbs_size].to_i, has_frames: has_frames)
+
+            #Just-in-Case, if the file is not created don't send it
+            if thumbnail.file?
+              @response[:images][to_hash(img)] = @options[:url] + '/' + thumbnail.path.to_s
+              idx += 1
+            end
           end
         end
       end
