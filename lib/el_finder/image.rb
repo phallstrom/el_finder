@@ -24,7 +24,8 @@ module ElFinder
 
     def self.thumbnail(src, dst, options = {})
       return nil unless File.exist?(src)
-      system( ::Shellwords.join(['convert', '-resize', "#{options[:width]}x#{options[:height]}", '-background', 'white', '-gravity', 'center', '-extent', "#{options[:width]}x#{options[:height]}", src.to_s, dst.to_s]) ) 
+      src = "#{src.to_s}[0]" if options[:has_frames]
+      system( ::Shellwords.join(['convert', '-resize', "#{options[:width]}x#{options[:height]}", '-background', 'white', '-gravity', 'center', '-extent', "#{options[:width]}x#{options[:height]}", src.to_s, dst.to_s]) )
     end # of self.resize
 
   end # of class Image
