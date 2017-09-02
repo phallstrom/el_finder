@@ -1,6 +1,6 @@
 ## NOTICE
 
-I no longer have the time to maintain this (haven't for a long time). If you have an interest in picking this up, let's talk and I can transfer the repository to you.
+**_I no longer have the time to maintain this (haven't for a long time). If you have an interest in picking this up, let's talk and I can transfer the repository to you._**
 
 ## el_finder
 
